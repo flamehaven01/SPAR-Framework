@@ -50,6 +50,8 @@ Built in physics. Applicable anywhere outputs can pass while claims drift.
 
 ---
 
+**Primary fit:** physics and mathematical model admissibility review for PDE models, dynamical systems, inverse problems, constrained optimization models, tensor/field models, and scientific ML surrogates.
+
 ## Core Concept Docs
 
 - [What Is SPAR](docs/WHAT_IS_SPAR.md)
@@ -125,6 +127,14 @@ This is the gap SPAR is built to review.
 **Validate mathematical model claims, not only outputs**  
 SPAR is most useful when teams need to review physical, mathematical, or scientific models whose outputs can pass numerically while the surrounding claim has become too strong, too stale, or too vague.
 
+Typical fits include:
+
+- PDE and simulation models used in fluid, heat, reaction, wave, or field systems
+- dynamical systems and control models where stability, boundedness, or convergence matters
+- inverse and calibration models where parameter fitting does not automatically justify a stronger interpretation
+- tensor, geometry, and field-theoretic models where exact, approximate, and heuristic paths must stay distinct
+- scientific ML surrogates, PINNs, and hybrid models where prediction quality is not the same thing as admissible theory-level claim
+
 **Keep analytical and implementation state synchronized**  
 SPAR gives teams a review layer that can force a warning, downgrade, or reclassification when the model, registry, and outward-facing interpretation drift apart.
 
@@ -147,6 +157,7 @@ Its primary fit is:
 - physics and mathematical model validation
 - scientific computing pipelines
 - research systems that need explicit admissibility or maturity surfaces
+- model families such as PDE solvers, dynamical systems, inverse problems, constrained models, and scientific ML surrogates
 
 Its secondary fit is:
 
