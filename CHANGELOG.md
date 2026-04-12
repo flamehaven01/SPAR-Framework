@@ -47,6 +47,13 @@
 - Added architecture notes for `B5` and `C10`
 - Added `docs/SCIENTIFIC_MODEL_ADAPTER.md` as the next adapter draft
 - Added repository logo to README
+- Rebuilt the README around a clearer GitHub landing order:
+  - hero
+  - why it exists
+  - quick start
+  - three-layer structure
+  - scoring
+  - fit / adoption / docs
 
 ## [0.1.1] - 2026-04-12
 
