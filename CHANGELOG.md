@@ -12,6 +12,7 @@
   - `example`
 - Preserved `spar-context-review` as a legacy compatibility entrypoint
 - Added `docs/CLI.md` to document command contracts, exit codes, and security defaults
+- Promoted `subject`, `result`, and `context` schemas into packaged JSON artifacts under `src/spar_framework/schemas/`
 
 ### Integration docs
 

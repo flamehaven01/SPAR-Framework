@@ -96,6 +96,8 @@ spar schema result
 spar schema context
 ```
 
+These payloads come from packaged JSON schema artifacts under `src/spar_framework/schemas/`, not from ad hoc in-code dicts.
+
 ### `spar example`
 
 Emit example subject payloads.

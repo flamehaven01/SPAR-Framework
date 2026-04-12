@@ -783,8 +783,8 @@ def test_spar_schema_subcommand_emits_subject_contract(capsys):
 
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["adapter"] == "physics"
-    assert "beta_G_norm" in payload["fields"]
+    assert payload["title"] == "SPAR Physics Subject"
+    assert "beta_G_norm" in payload["properties"]
 
 
 def test_spar_example_subcommand_writes_example(tmp_path):
@@ -798,3 +798,15 @@ def test_spar_example_subcommand_writes_example(tmp_path):
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert payload["source"] == "flat"
     assert payload["subject"]["beta_G_norm"] == 0.0
+
+
+def test_load_schema_reads_packaged_artifact():
+    from spar_framework.schema_loader import load_schema
+
+    subject_schema = load_schema("subject")
+    result_schema = load_schema("result")
+    context_schema = load_schema("context")
+
+    assert subject_schema["title"] == "SPAR Physics Subject"
+    assert result_schema["title"] == "SPAR Review Result"
+    assert context_schema["title"] == "SPAR Context Contracts"

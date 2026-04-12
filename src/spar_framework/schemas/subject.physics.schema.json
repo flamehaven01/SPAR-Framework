@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/flamehaven01/SPAR-Framework/schemas/subject.physics.schema.json",
+  "title": "SPAR Physics Subject",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "beta_G_norm": {
+      "type": "number",
+      "description": "Norm of the beta^G residual."
+    },
+    "beta_B_norm": {
+      "type": "number",
+      "description": "Norm of the beta^B residual."
+    },
+    "beta_Phi_norm": {
+      "type": "number",
+      "description": "Norm of the beta^Phi residual."
+    },
+    "sidrce_omega": {
+      "type": "number",
+      "description": "Governance omega score on the current path."
+    },
+    "eft_m_kk_gev": {
+      "type": "number",
+      "description": "KK scale in GeV for the EFT sanity check."
+    },
+    "ricci_norm": {
+      "type": "number",
+      "description": "Curvature proxy used for alpha-prime correction checks."
+    }
+  }
+}

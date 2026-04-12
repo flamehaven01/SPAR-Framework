@@ -122,7 +122,7 @@ spar review \
 spar review    # run machine-readable review
 spar explain   # summarize an existing review JSON
 spar discover  # detect adapter + MICA runtime state
-spar schema    # emit subject/result/context contracts
+spar schema    # emit packaged subject/result/context schema artifacts
 spar example   # emit example subject payloads
 ```
 
@@ -324,6 +324,8 @@ See [docs/SCIENTIFIC_MODEL_ADAPTER.md](docs/SCIENTIFIC_MODEL_ADAPTER.md) for the
 | [LEDA Injection Contract](docs/LEDA_INJECTION_CONTRACT.md) | Integration contract |
 | [MICA -> LEDA -> SPAR Workflow](docs/MICA_LEDA_SPAR_WORKFLOW.md) | Contextual workflow |
 | [Security Model](docs/SECURITY_MODEL.md) | Security design |
+
+Schema artifacts ship inside the package under `src/spar_framework/schemas/` and are exposed through `spar schema`.
 
 **Start here**
 

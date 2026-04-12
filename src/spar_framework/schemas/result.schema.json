@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/flamehaven01/SPAR-Framework/schemas/result.schema.json",
+  "title": "SPAR Review Result",
+  "type": "object",
+  "required": [
+    "subject",
+    "gate",
+    "score",
+    "grade",
+    "verdict",
+    "layer_a",
+    "layer_b",
+    "layer_c"
+  ],
+  "properties": {
+    "subject": {
+      "description": "Stringified subject summary persisted by the review result."
+    },
+    "gate": {
+      "type": "string"
+    },
+    "score": {
+      "type": "integer"
+    },
+    "grade": {
+      "type": "string"
+    },
+    "verdict": {
+      "type": "string"
+    },
+    "slop_hits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "context_summary": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Safe contextual summary only. Raw MICA and LEDA payloads are not persisted."
+    },
+    "model_registry_snapshot": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "gap_registry_snapshot": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "layer_a": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/checkResult"
+      }
+    },
+    "layer_b": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/checkResult"
+      }
+    },
+    "layer_c": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/checkResult"
+      }
+    }
+  },
+  "$defs": {
+    "checkResult": {
+      "type": "object",
+      "required": [
+        "check_id",
+        "label",
+        "status",
+        "detail",
+        "ref"
+      ],
+      "properties": {
+        "check_id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

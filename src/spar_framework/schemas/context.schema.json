@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/flamehaven01/SPAR-Framework/schemas/context.schema.json",
+  "title": "SPAR Context Contracts",
+  "type": "object",
+  "properties": {
+    "mica": {
+      "type": "object",
+      "properties": {
+        "runtime_states": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "INVOCATION_MODE",
+              "LEGACY_MODE",
+              "INACTIVE"
+            ]
+          }
+        },
+        "auto_discovery_order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "leda": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "restricted",
+              "public"
+            ]
+          }
+        },
+        "default_profile": {
+          "type": "string"
+        },
+        "public_ingestible_by_spar": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -6,12 +6,12 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
 from spar_domain_physics.ground_truth_table import GROUND_TRUTH
 from spar_domain_physics.runtime import get_review_runtime
 
 from .mica import discover_mica_runtime
+from .schema_loader import load_schema
 from .workflow import run_contextual_review
 
 EXIT_OK = 0
@@ -239,7 +239,7 @@ def _run_discover(args: argparse.Namespace) -> int:
 
 
 def _run_schema(args: argparse.Namespace) -> int:
-    payload = _schema_payload(args.target)
+    payload = load_schema(args.target)
     print(json.dumps(payload, indent=2))
     return EXIT_OK
 
@@ -254,54 +254,6 @@ def _run_example(args: argparse.Namespace) -> int:
         Path(args.output_json).write_text(encoded, encoding="utf-8")
     print(encoded)
     return EXIT_OK
-
-
-def _schema_payload(target: str) -> dict[str, Any]:
-    if target == "subject":
-        return {
-            "adapter": "physics",
-            "required": ["source", "subject"],
-            "fields": {
-                "beta_G_norm": "float",
-                "beta_B_norm": "float",
-                "beta_Phi_norm": "float",
-                "sidrce_omega": "float",
-                "eft_m_kk_gev": "float",
-                "ricci_norm": "float",
-            },
-        }
-    if target == "result":
-        return {
-            "required": [
-                "subject",
-                "gate",
-                "score",
-                "grade",
-                "verdict",
-                "layer_a",
-                "layer_b",
-                "layer_c",
-            ],
-            "notes": [
-                "ReviewResult persists only safe context_summary, not raw MICA or LEDA payloads.",
-                "model_registry_snapshot and gap_registry_snapshot are first-class runtime surfaces.",
-            ],
-        }
-    return {
-        "mica": {
-            "runtime_states": ["INVOCATION_MODE", "LEGACY_MODE", "INACTIVE"],
-            "auto_discovery_order": [
-                "mica.yaml",
-                "memory/mica.yaml",
-                "memory/*.mica.*.json",
-            ],
-        },
-        "leda": {
-            "profiles": ["internal", "restricted", "public"],
-            "default_profile": "restricted",
-            "public_ingestible_by_spar": False,
-        },
-    }
 
 
 def _example_subject(source: str) -> dict[str, Any]:
