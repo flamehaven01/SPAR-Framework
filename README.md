@@ -1,9 +1,9 @@
 # spar-framework
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
-![Tests](https://img.shields.io/badge/tests-13%20passed-brightgreen.svg)
-![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
-![Adapter](https://img.shields.io/badge/adapter-physics-informational.svg)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://github.com/flamehaven01/SPAR-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/flamehaven01/SPAR-Framework/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/flamehaven01/SPAR-Framework)](https://github.com/flamehaven01/SPAR-Framework/releases)
+[![Adapter](https://img.shields.io/badge/adapter-physics-informational.svg)](https://github.com/flamehaven01/SPAR-Framework/tree/main/src/spar_domain_physics)
 
 Claim-aware review for systems whose outputs can pass while their claims drift.
 
