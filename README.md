@@ -12,6 +12,7 @@
 [Where It Fits](#where-it-fits) •
 [Adoption Path](#adoption-path) •
 [What SPAR Provides](#what-spar-provides) •
+[Core Concept Docs](#core-concept-docs) •
 [Quick Start](#quick-start) •
 [Architecture](#architecture) •
 [Repository Layout](#repository-layout) •
@@ -48,6 +49,13 @@ Built in physics. Applicable anywhere outputs can pass while claims drift.
 | Detect when green outputs and attached claims no longer match. | Keep `exact`, `approximate`, `partial`, `heuristic`, and `environment_conditional` visible at review time. | Start with lightweight claim checks, then grow into full Layer A/B/C review. |
 
 ---
+
+## Core Concept Docs
+
+- [What Is SPAR](docs/WHAT_IS_SPAR.md)
+- [Admissibility](docs/ADMISSIBILITY.md)
+- [Physics as the Proof Case](docs/PHYSICS_PROOF_CASE.md)
+- [Use Cases](docs/USE_CASES.md)
 
 ## Workflow
 
@@ -299,11 +307,13 @@ visible and costly.
 
 ## Start Here
 
-1. `docs/ARCHITECTURE.md`
-2. `docs/EXTRACTION_MAP.md`
-3. `src/spar_framework/engine.py`
-4. `src/spar_domain_physics/runtime.py`
-5. `memory/spar-framework-playbook.v1.0.0.md`
+1. `docs/WHAT_IS_SPAR.md`
+2. `docs/ADMISSIBILITY.md`
+3. `docs/PHYSICS_PROOF_CASE.md`
+4. `docs/ARCHITECTURE.md`
+5. `src/spar_framework/engine.py`
+6. `src/spar_domain_physics/runtime.py`
+7. `memory/spar-framework-playbook.v1.0.0.md`
 
 ## Development
 

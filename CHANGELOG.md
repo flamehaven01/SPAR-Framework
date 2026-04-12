@@ -13,6 +13,16 @@
 - Prepared the repository for PyPI Trusted Publisher flow using GitHub OIDC
 - Preserved the standalone kernel, physics adapter, and current passing test/build state
 
+### Documentation structure
+
+- Added canonical concept docs under `docs/`:
+  - `WHAT_IS_SPAR.md`
+  - `ADMISSIBILITY.md`
+  - `PHYSICS_PROOF_CASE.md`
+  - `USE_CASES.md`
+- Linked the README to the concept docs so the external article thesis has a
+  durable in-repo documentation surface
+
 ## [0.1.0] - 2026-04-11
 
 ### Initial scaffold
