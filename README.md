@@ -73,6 +73,14 @@ This is the gap SPAR is built to review.
 
 ## Quick Start
 
+**Install from PyPI**
+
+```bash
+pip install spar-framework
+```
+
+**Install for local development**
+
 ```bash
 pip install -e .[dev]
 ```
