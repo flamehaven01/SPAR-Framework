@@ -1,6 +1,11 @@
 """Physics-domain adapter seed package for SPAR."""
 
 from .architecture_gaps import PHYSICS_ARCHITECTURE_GAPS
+from .context_signals import (
+    check_b4_leda_claim_surface,
+    check_c9_leda_maturity_alignment,
+    extract_leda_summary,
+)
 from .layer_a import build_layer_a
 from .layer_b import build_layer_b
 from .layer_c import build_layer_c
@@ -24,6 +29,9 @@ __all__ = [
     "build_layer_a",
     "build_layer_b",
     "build_layer_c",
+    "check_b4_leda_claim_surface",
+    "check_c9_leda_maturity_alignment",
+    "extract_leda_summary",
     "format_gap_state",
     "get_ground_truth",
     "get_physics_gap",

@@ -37,6 +37,7 @@ class ReviewResult:
     grade: str = "PASS"
     verdict: str = "ACCEPT"
     slop_hits: list[str] = field(default_factory=list)
+    context_summary: dict[str, Any] | None = None
     model_registry_snapshot: dict[str, Any] | None = None
     gap_registry_snapshot: dict[str, Any] | None = None
 
@@ -48,6 +49,7 @@ class ReviewResult:
             "grade": self.grade,
             "verdict": self.verdict,
             "slop_hits": self.slop_hits,
+            "context_summary": self.context_summary,
             "model_registry_snapshot": self.model_registry_snapshot,
             "gap_registry_snapshot": self.gap_registry_snapshot,
             "layer_a": [item.to_dict() for item in self.layer_a],

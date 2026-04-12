@@ -15,7 +15,9 @@ def build_layer_a(
     source: str,
     gate: str,
     params: dict[str, Any],
+    context: dict[str, Any] | None = None,
 ) -> list:
+    del context
     gt = get_ground_truth(source)
     beta_tol_g = float(params.get("beta_tol_G", 1e-4))
     beta_tol_b = float(params.get("beta_tol_B", 1e-4))
@@ -31,4 +33,3 @@ def build_layer_a(
         check_a5(subject.get("sidrce_omega")),
         check_a6(subject.get("eft_m_kk_gev")),
     ]
-

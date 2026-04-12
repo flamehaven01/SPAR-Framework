@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from .context import summarize_review_context
 from .result_types import ReviewResult
 from .runtime_context import build_core_review, build_registry_snapshots
 
@@ -30,12 +31,28 @@ def run_review(
     gate: str = "",
     params: dict[str, Any] | None = None,
     report_text: str = "",
+    memory_context: dict[str, Any] | None = None,
+    leda_injection: dict[str, Any] | None = None,
 ) -> ReviewResult:
     params = params or {}
+    context = {
+        "memory_context": memory_context,
+        "leda_injection": leda_injection,
+    }
 
-    layer_a = runtime.build_layer_a(subject=subject, source=source, gate=gate, params=params)
-    layer_b = runtime.build_layer_b(subject=subject, source=source, gate=gate, report_text=report_text)
-    layer_c = runtime.build_layer_c(subject=subject, source=source, gate=gate, params=params)
+    layer_a = runtime.build_layer_a(
+        subject=subject, source=source, gate=gate, params=params, context=context
+    )
+    layer_b = runtime.build_layer_b(
+        subject=subject,
+        source=source,
+        gate=gate,
+        report_text=report_text,
+        context=context,
+    )
+    layer_c = runtime.build_layer_c(
+        subject=subject, source=source, gate=gate, params=params, context=context
+    )
 
     slop_penalty = 0
     slop_hits: list[str] = []
@@ -63,6 +80,10 @@ def run_review(
         grade=core_review["grade"],
         verdict=core_review["verdict"],
         slop_hits=slop_hits,
+        context_summary=summarize_review_context(
+            memory_context=memory_context,
+            leda_injection=leda_injection,
+        ),
         model_registry_snapshot=registry_snapshots["model_registry_snapshot"],
         gap_registry_snapshot=registry_snapshots["gap_registry_snapshot"],
     )

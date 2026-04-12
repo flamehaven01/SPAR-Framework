@@ -13,6 +13,8 @@
 [Adoption Path](#adoption-path) •
 [What SPAR Provides](#what-spar-provides) •
 [Core Concept Docs](#core-concept-docs) •
+[Integration Contracts](#integration-contracts) •
+[Security Model](#security-model) •
 [Quick Start](#quick-start) •
 [Architecture](#architecture) •
 [Repository Layout](#repository-layout) •
@@ -58,6 +60,15 @@ Built in physics. Applicable anywhere outputs can pass while claims drift.
 - [Admissibility](docs/ADMISSIBILITY.md)
 - [Physics as the Proof Case](docs/PHYSICS_PROOF_CASE.md)
 - [Use Cases](docs/USE_CASES.md)
+
+## Integration Contracts
+
+- [LEDA Injection Contract](docs/LEDA_INJECTION_CONTRACT.md)
+- [MICA -> LEDA -> SPAR Workflow](docs/MICA_LEDA_SPAR_WORKFLOW.md)
+
+## Security Model
+
+- [Security Model](docs/SECURITY_MODEL.md)
 
 ## Workflow
 
@@ -254,6 +265,18 @@ result = run_review(
 print(result.verdict)
 print(result.score)
 print(result.model_registry_snapshot["total_models"])
+```
+
+Contextual workflow:
+
+```bash
+spar-context-review \
+  --subject-json subject.json \
+  --source "flat minkowski" \
+  --gate PASS \
+  --mica-context mica.yaml \
+  --leda-injection reports/leda_injection.yaml \
+  --output-json review.json
 ```
 
 ## Architecture

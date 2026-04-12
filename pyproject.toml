@@ -22,7 +22,9 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = []
+dependencies = [
+    "pyyaml>=6.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/flamehaven01/SPAR-Framework#readme"
@@ -34,6 +36,9 @@ dev = [
     "pytest>=8.0",
     "build>=1.2.0",
 ]
+
+[project.scripts]
+spar-context-review = "spar_framework.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

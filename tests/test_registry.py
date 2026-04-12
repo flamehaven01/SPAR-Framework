@@ -1,3 +1,5 @@
+import json
+
 from spar_framework.registry import GapSpec, ModelSpec, gap_registry_snapshot, model_registry_snapshot
 
 
@@ -35,6 +37,95 @@ def test_run_review_emits_registry_snapshots():
     assert payload["verdict"] == "ACCEPT"
     assert payload["model_registry_snapshot"]["total_models"] == 1
     assert payload["gap_registry_snapshot"]["total_gaps"] == 1
+
+
+def test_run_review_emits_safe_context_summary():
+    from spar_framework.engine import ReviewRuntime, run_review
+    from spar_framework.result_types import CheckResult
+
+    runtime = ReviewRuntime(
+        build_layer_a=lambda **_: [CheckResult("A1", "anchor", "PASS", "ok")],
+        build_layer_b=lambda **_: [CheckResult("B1", "scope", "PASS", "ok")],
+        build_layer_c=lambda **_: [CheckResult("C1", "maturity", "PASS", "ok")],
+    )
+
+    result = run_review(
+        runtime=runtime,
+        subject="demo",
+        memory_context={"project_name": "mica-demo", "mode": "memory_injection"},
+        leda_injection={
+            "source": {"analyzer": "LEDA", "generated_at": "2026-04-12T00:00:00Z"},
+            "security": {"classification": "restricted"},
+            "claim_risk": [{"id": "registry_drift", "severity": "high"}],
+            "maturity": {"suggested_current": "partial"},
+            "spar_review_hints": {"preferred_layers": ["Layer C"]},
+        },
+    )
+
+    payload = result.to_dict()
+    assert payload["context_summary"]["sources"] == ["mica", "leda"]
+    assert payload["context_summary"]["leda"]["claim_risk_count"] == 1
+    assert payload["context_summary"]["leda"]["suggested_maturity"] == "partial"
+
+
+def test_run_contextual_review_loads_redacted_leda(tmp_path):
+    import yaml
+
+    from spar_domain_physics.runtime import get_review_runtime
+    from spar_framework.workflow import run_contextual_review
+
+    mica_path = tmp_path / "mica.yaml"
+    mica_path.write_text("project_name: demo\nmode: memory_injection\n", encoding="utf-8")
+    leda_path = tmp_path / "leda.yaml"
+    leda_path.write_text(
+        yaml.safe_dump(
+            {
+                "project": {"name": "demo", "root": "/secret/root"},
+                "source": {
+                    "analyzer": "LEDA",
+                    "generated_at": "2026-04-12T00:00:00Z",
+                    "config_path": "/secret/config",
+                    "history_db": "/secret/history.db",
+                },
+                "security": {"classification": "internal"},
+                "claim_risk": [
+                    {
+                        "id": "registry_drift",
+                        "severity": "high",
+                        "layer_hint": "Layer C",
+                        "evidence": ["secret"],
+                    }
+                ],
+                "maturity": {"suggested_current": "partial"},
+                "spar_review_hints": {"preferred_layers": ["Layer C"]},
+                "overrides": {"configured_override_count": 1},
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_contextual_review(
+        runtime=get_review_runtime(),
+        subject={
+            "beta_G_norm": 0.0,
+            "beta_B_norm": 0.0,
+            "beta_Phi_norm": 0.0,
+            "sidrce_omega": 1.0,
+            "eft_m_kk_gev": 1.0e16,
+            "ricci_norm": 0.02,
+        },
+        source="flat minkowski",
+        gate="PASS",
+        mica_context_path=str(mica_path),
+        leda_injection_path=str(leda_path),
+    )
+
+    payload = result.to_dict()
+    assert payload["context_summary"]["mica"]["mode"] == "memory_injection"
+    assert payload["context_summary"]["leda"]["classification"] == "restricted"
+    assert payload["context_summary"]["leda"]["claim_risk_count"] == 1
+    assert "claim_risk_ids" not in payload["context_summary"]["leda"]
 
 
 def test_physics_adapter_seed_emits_grouped_registry():
@@ -123,6 +214,30 @@ def test_physics_layer_b_warns_on_slop_phrase():
 
     assert checks[1].status == "WARN"
     assert checks[2].status == "WARN"
+    assert checks[3].status == "CANNOT_CHECK"
+
+
+def test_physics_layer_b_reads_leda_claim_surface():
+    from spar_domain_physics.layer_b import build_layer_b
+
+    checks = build_layer_b(
+        subject={
+            "eft_m_kk_gev": 1.0e16,
+            "ricci_norm": 0.02,
+        },
+        source="ads",
+        gate="PASS",
+        report_text="Tight bounded statement.",
+        context={
+            "leda_injection": {
+                "claim_risk": [{"id": "registry_drift"}],
+                "maturity": {"suggested_current": "partial"},
+                "spar_review_hints": {"preferred_layers": ["Layer C"]},
+            }
+        },
+    )
+
+    assert checks[3].status == "WARN"
 
 
 def test_physics_runtime_emits_slop_hits_and_registry_snapshots():
@@ -182,6 +297,67 @@ def test_physics_layer_c_flags_missing_omega_as_cannot_determine():
 
     c4 = next(check for check in checks if check.check_id == "C4")
     assert c4.status == "CANNOT_DETERMINE"
+    c9 = next(check for check in checks if check.check_id == "C9")
+    assert c9.status == "CANNOT_CHECK"
+
+
+def test_physics_layer_c_reads_leda_maturity_alignment():
+    from spar_domain_physics.layer_c import build_layer_c
+
+    checks = build_layer_c(
+        subject={},
+        source="wzw background",
+        gate="PASS",
+        params={},
+        context={
+            "leda_injection": {
+                "security": {"classification": "restricted"},
+                "maturity": {"suggested_current": "partial", "confidence": 0.77},
+            }
+        },
+    )
+
+    c9 = next(check for check in checks if check.check_id == "C9")
+    assert c9.status == "APPROXIMATION"
+
+
+def test_public_leda_payload_is_not_ingested_by_physics_layers():
+    from spar_domain_physics.layer_b import build_layer_b
+    from spar_domain_physics.layer_c import build_layer_c
+
+    b_checks = build_layer_b(
+        subject={
+            "eft_m_kk_gev": 1.0e16,
+            "ricci_norm": 0.02,
+        },
+        source="ads",
+        gate="PASS",
+        report_text="Tight bounded statement.",
+        context={
+            "leda_injection": {
+                "security": {"classification": "public", "ingestible_by_spar": False},
+                "claim_risk": [{"id": "registry_drift"}],
+                "maturity": {"suggested_current": "partial", "confidence": 0.77},
+            }
+        },
+    )
+    c_checks = build_layer_c(
+        subject={},
+        source="wzw background",
+        gate="PASS",
+        params={},
+        context={
+            "leda_injection": {
+                "security": {"classification": "public", "ingestible_by_spar": False},
+                "claim_risk": [{"id": "registry_drift"}],
+                "maturity": {"suggested_current": "partial", "confidence": 0.77},
+            }
+        },
+    )
+
+    assert b_checks[3].status == "CANNOT_CHECK"
+    c9 = next(check for check in c_checks if check.check_id == "C9")
+    assert c9.status == "CANNOT_CHECK"
 
 
 def test_physics_runtime_layer_c_affects_score():
@@ -207,3 +383,70 @@ def test_physics_runtime_layer_c_affects_score():
 
     assert payload["score"] < 100
     assert any(check["check_id"] == "C4" for check in payload["layer_c"])
+
+
+def test_spar_context_review_cli_writes_json(tmp_path):
+    import yaml
+
+    from spar_framework.cli import main
+
+    subject_path = tmp_path / "subject.json"
+    subject_path.write_text(
+        json.dumps(
+            {
+                "beta_G_norm": 0.0,
+                "beta_B_norm": 0.0,
+                "beta_Phi_norm": 0.0,
+                "sidrce_omega": 1.0,
+                "eft_m_kk_gev": 1.0e16,
+                "ricci_norm": 0.02,
+            }
+        ),
+        encoding="utf-8",
+    )
+    mica_path = tmp_path / "mica.yaml"
+    mica_path.write_text("project_name: demo\nmode: memory_injection\n", encoding="utf-8")
+    leda_path = tmp_path / "leda.yaml"
+    leda_path.write_text(
+        yaml.safe_dump(
+            {
+                "source": {"analyzer": "LEDA", "generated_at": "2026-04-12T00:00:00Z"},
+                "security": {"classification": "restricted"},
+                "claim_risk": [{"id": "registry_drift", "severity": "high"}],
+                "maturity": {"suggested_current": "partial"},
+                "spar_review_hints": {"preferred_layers": ["Layer C"]},
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "review.json"
+
+    import sys
+    from unittest.mock import patch
+
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "spar-context-review",
+            "--subject-json",
+            str(subject_path),
+            "--source",
+            "flat minkowski",
+            "--gate",
+            "PASS",
+            "--mica-context",
+            str(mica_path),
+            "--leda-injection",
+            str(leda_path),
+            "--output-json",
+            str(output_path),
+        ],
+    ):
+        rc = main()
+
+    assert rc == 0
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["context_summary"]["sources"] == ["mica", "leda"]
+    assert any(check["check_id"] == "C9" for check in payload["layer_c"])

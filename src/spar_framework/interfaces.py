@@ -15,6 +15,7 @@ class LayerABuilder(Protocol):
         source: str,
         gate: str,
         params: dict[str, Any],
+        context: dict[str, Any] | None = None,
     ) -> list[CheckResult]: ...
 
 
@@ -26,6 +27,7 @@ class LayerBBuilder(Protocol):
         source: str,
         gate: str,
         report_text: str,
+        context: dict[str, Any] | None = None,
     ) -> list[CheckResult]: ...
 
 
@@ -37,6 +39,7 @@ class LayerCBuilder(Protocol):
         source: str,
         gate: str,
         params: dict[str, Any],
+        context: dict[str, Any] | None = None,
     ) -> list[CheckResult]: ...
 
 

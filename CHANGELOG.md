@@ -1,5 +1,33 @@
 # Changelog
 
+## [Unreleased]
+
+### Integration docs
+
+- Added `docs/LEDA_INJECTION_CONTRACT.md`
+- Added `docs/MICA_LEDA_SPAR_WORKFLOW.md`
+- Added `docs/SECURITY_MODEL.md`
+- Linked the README to the new integration contract docs so MICA/LEDA/SPAR
+  role separation is explicit
+
+### Context ingestion
+
+- Added context ingestion helpers:
+  - `src/spar_framework/context.py`
+  - `src/spar_framework/workflow.py`
+- Added CLI workflow entrypoint:
+  - `spar-context-review`
+- `run_review()` now accepts optional `memory_context` and `leda_injection`
+- `ReviewResult` now persists only `context_summary`, not the raw payload
+- Added tests covering safe context summarization and contextual review loading
+
+### Physics adapter context use
+
+- Physics Layer B now emits an additional check when restricted LEDA context
+  reports claim-risk candidates
+- Physics Layer C now emits an additional maturity-alignment check from
+  restricted LEDA context
+
 ## [0.1.1] - 2026-04-12
 
 ### PyPI publishing readiness
