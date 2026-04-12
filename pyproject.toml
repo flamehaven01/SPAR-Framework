@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spar-framework"
+version = "0.1.0"
+description = "Standalone deterministic admissibility-review framework"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "LicenseRef-Flamehaven-Sovereign"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Flamehaven"},
+]
+keywords = ["verification", "governance", "admissibility", "review", "physics"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Flamehaven/spar-framework"
+Repository = "https://github.com/Flamehaven/spar-framework"
+Issues = "https://github.com/Flamehaven/spar-framework/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "build>=1.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

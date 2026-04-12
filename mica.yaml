@@ -1,0 +1,28 @@
+mica_spec: "0.2.2"
+name: spar-framework
+mode: protocol_evolution
+description: "Standalone deterministic admissibility-review framework"
+
+layers:
+  - name: archive
+    path: memory/spar-framework.mica.v1.0.0.json
+    format: json
+    loading_hint: always
+
+  - name: playbook
+    path: memory/spar-framework-playbook.v1.0.0.md
+    format: markdown
+    loading_hint: always
+
+  - name: lessons
+    path: memory/lessons/
+    format: markdown
+    loading_hint: on_demand
+
+invocation_protocol:
+  primary_pattern: readme_protocol
+
+update_triggers:
+  - on_explicit_save
+  - on_extraction_milestone
+

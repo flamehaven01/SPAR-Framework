@@ -1,0 +1,49 @@
+{
+  "mica_spec": "0.2.2",
+  "mica_schema_version": "0.2.2",
+  "project": {
+    "name": "spar-framework",
+    "full_name": "SPAR Framework",
+    "version": "0.1.0",
+    "status": "active",
+    "purpose": "Standalone deterministic admissibility-review framework extracted from TOE",
+    "canonical_statement": "SPAR Framework is a domain-agnostic admissibility-review kernel. It separates anchor checks, interpretation-scope checks, and maturity-state checks, while delegating domain-specific contracts to adapter packages.",
+    "primary_language": "Python",
+    "repo_path": "spar-framework"
+  },
+  "design_invariants": [
+    {
+      "id": "DI-001",
+      "label": "deterministic-core",
+      "statement": "The framework core must remain deterministic. Free-form generative judging is not part of the core review kernel.",
+      "severity": "critical"
+    },
+    {
+      "id": "DI-002",
+      "label": "snapshot-emission",
+      "statement": "Registry-backed snapshots are part of the runtime result surface, not optional documentation.",
+      "severity": "critical"
+    },
+    {
+      "id": "DI-003",
+      "label": "domain-adapter-boundary",
+      "statement": "Analytical anchors and domain-specific admissibility contracts belong to adapters, not the framework core.",
+      "severity": "critical"
+    }
+  ],
+  "provenance_registry": [],
+  "operation_meta": {
+    "archive_id": "MICA-SPAR-FRAMEWORK-001",
+    "mica_schema_version": "0.2.2",
+    "baseline_ref": "v0.1.0-2026-04-11",
+    "objective": "Institutional memory for standalone SPAR framework extraction.",
+    "operating_mode": "evolve",
+    "current_state": "active",
+    "update_count": 1,
+    "last_updated": "2026-04-11",
+    "session_count": 1,
+    "invocation_notes": "Primary invocation via mica.yaml and README/start-here path.",
+    "bootstrap_note": "Initialized as a standalone extraction target from Flamehaven-TOE."
+  }
+}
+
