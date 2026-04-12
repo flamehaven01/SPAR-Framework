@@ -20,6 +20,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gate", default="", help="Declared gate status")
     parser.add_argument("--report-text", default="", help="Inline report text")
     parser.add_argument("--report-file", help="Path to report text file")
+    parser.add_argument(
+        "--project-root",
+        help="Project root for MICA auto-discovery when --mica-context is not provided",
+    )
     parser.add_argument("--mica-context", help="Path to mica.yaml or MICA context YAML")
     parser.add_argument("--leda-injection", help="Path to LEDA injection YAML")
     parser.add_argument(
@@ -45,6 +49,7 @@ def main() -> int:
         source=args.source,
         gate=args.gate,
         report_text=report_text,
+        project_root=args.project_root,
         mica_context_path=args.mica_context,
         leda_injection_path=args.leda_injection,
         leda_profile=args.leda_profile,

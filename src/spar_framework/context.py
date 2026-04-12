@@ -8,10 +8,15 @@ from typing import Any
 
 import yaml
 
+from .mica import load_mica_runtime_context
+
 
 def load_mica_context(path: str | Path) -> dict[str, Any]:
-    """Load MICA context from YAML."""
-    return _load_yaml(path)
+    """Load MICA context from explicit path."""
+    loaded = load_mica_runtime_context(mica_context_path=path)
+    if loaded is None:
+        raise ValueError(f"Unable to load MICA context from {path}")
+    return loaded
 
 
 def load_leda_injection(
@@ -104,12 +109,19 @@ def summarize_review_context(
     summary: dict[str, Any] = {"sources": []}
     if memory_context:
         summary["sources"].append("mica")
+        runtime = memory_context.get("_mica_runtime", {})
+        invariants = memory_context.get("invariants", {})
         summary["mica"] = {
+            "state": runtime.get("state"),
             "mode": memory_context.get("mode") or memory_context.get("invocation_mode"),
             "pattern": memory_context.get("pattern"),
             "project": memory_context.get("project", {}).get("name")
             if isinstance(memory_context.get("project"), dict)
             else memory_context.get("project_name"),
+            "archive_id": memory_context.get("archive_id"),
+            "last_updated": memory_context.get("last_updated"),
+            "critical_invariants": invariants.get("critical", 0),
+            "high_invariants": invariants.get("high", 0),
         }
     if leda_injection:
         summary["sources"].append("leda")

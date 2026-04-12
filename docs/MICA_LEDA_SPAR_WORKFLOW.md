@@ -49,6 +49,9 @@ This is **admissibility review**.
 ## Execution Order
 
 ```text
+MICA detect
+  -> classify INVOCATION_MODE / LEGACY_MODE / INACTIVE
+
 MICA load
   -> inject design invariants and archive context
 
@@ -70,3 +73,19 @@ If these roles collapse together, the system becomes harder to reason about.
 
 The architecture works because each engine is responsible for a different kind
 of truth surface.
+
+## MICA Runtime Contract in SPAR
+
+When a project root is provided, SPAR follows the MICA v0.2.2 detection order:
+
+1. project root `mica.yaml`
+2. `memory/mica.yaml`
+3. `memory/*.mica.*.json`
+
+That gives SPAR an explicit runtime state:
+
+- `INVOCATION_MODE`
+- `LEGACY_MODE`
+- `INACTIVE`
+
+SPAR persists only a safe summary of that state in `context_summary`.

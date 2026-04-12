@@ -14,12 +14,21 @@
 
 - Added context ingestion helpers:
   - `src/spar_framework/context.py`
+  - `src/spar_framework/mica.py`
   - `src/spar_framework/workflow.py`
 - Added CLI workflow entrypoint:
   - `spar-context-review`
 - `run_review()` now accepts optional `memory_context` and `leda_injection`
 - `ReviewResult` now persists only `context_summary`, not the raw payload
 - Added tests covering safe context summarization and contextual review loading
+- Added MICA runtime discovery using the v0.2.2 detection order:
+  - root `mica.yaml`
+  - `memory/mica.yaml`
+  - legacy `memory/*.mica.*.json`
+- Added explicit MICA runtime states to contextual review:
+  - `INVOCATION_MODE`
+  - `LEGACY_MODE`
+  - `INACTIVE`
 
 ### Physics adapter context use
 

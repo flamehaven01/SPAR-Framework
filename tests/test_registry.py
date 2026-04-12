@@ -122,10 +122,88 @@ def test_run_contextual_review_loads_redacted_leda(tmp_path):
     )
 
     payload = result.to_dict()
+    assert payload["context_summary"]["mica"]["state"] == "INVOCATION_MODE"
     assert payload["context_summary"]["mica"]["mode"] == "memory_injection"
     assert payload["context_summary"]["leda"]["classification"] == "restricted"
     assert payload["context_summary"]["leda"]["claim_risk_count"] == 1
     assert "claim_risk_ids" not in payload["context_summary"]["leda"]
+
+
+def test_discover_mica_runtime_invocation_mode(tmp_path):
+    from spar_framework.mica import discover_mica_runtime, load_mica_runtime_context
+
+    (tmp_path / "memory").mkdir()
+    (tmp_path / "mica.yaml").write_text(
+        "\n".join(
+            [
+                "mica_spec: \"0.2.2\"",
+                "name: demo-project",
+                "mode: memory_injection",
+                "layers:",
+                "  - name: archive",
+                "    path: memory/demo.mica.v1.0.0.json",
+                "invocation_protocol:",
+                "  primary_pattern: hook_trigger",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "memory" / "demo.mica.v1.0.0.json").write_text(
+        json.dumps(
+            {
+                "project": {"name": "demo-project"},
+                "design_invariants": [
+                    {"id": "DI-001", "severity": "critical"},
+                    {"id": "DI-002", "severity": "high"},
+                ],
+                "operation_meta": {
+                    "archive_id": "MICA-DEMO-001",
+                    "last_updated": "2026-04-12",
+                    "current_state": "active",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    discovery = discover_mica_runtime(tmp_path)
+    context = load_mica_runtime_context(project_root=tmp_path)
+
+    assert discovery["state"] == "INVOCATION_MODE"
+    assert context is not None
+    assert context["_mica_runtime"]["state"] == "INVOCATION_MODE"
+    assert context["invariants"]["critical"] == 1
+    assert context["pattern"] == "hook_trigger"
+
+
+def test_discover_mica_runtime_legacy_mode(tmp_path):
+    from spar_framework.mica import discover_mica_runtime, load_mica_runtime_context
+
+    (tmp_path / "memory").mkdir()
+    (tmp_path / "memory" / "legacy.mica.v1.0.0.json").write_text(
+        json.dumps(
+            {
+                "mica_spec": "0.2.2",
+                "project": {"name": "legacy-demo"},
+                "design_invariants": [{"id": "DI-001", "severity": "critical"}],
+                "operation_meta": {
+                    "archive_id": "MICA-LEGACY-001",
+                    "last_updated": "2026-04-11",
+                    "current_state": "active",
+                    "operating_mode": "protocol_evolution",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    discovery = discover_mica_runtime(tmp_path)
+    context = load_mica_runtime_context(project_root=tmp_path)
+
+    assert discovery["state"] == "LEGACY_MODE"
+    assert context is not None
+    assert context["_mica_runtime"]["state"] == "LEGACY_MODE"
+    assert context["archive_id"] == "MICA-LEGACY-001"
 
 
 def test_physics_adapter_seed_emits_grouped_registry():
@@ -450,3 +528,98 @@ def test_spar_context_review_cli_writes_json(tmp_path):
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert payload["context_summary"]["sources"] == ["mica", "leda"]
     assert any(check["check_id"] == "C9" for check in payload["layer_c"])
+
+
+def test_spar_context_review_cli_can_auto_discover_mica(tmp_path):
+    import yaml
+
+    from spar_framework.cli import main
+
+    (tmp_path / "memory").mkdir()
+    subject_path = tmp_path / "subject.json"
+    subject_path.write_text(
+        json.dumps(
+            {
+                "beta_G_norm": 0.0,
+                "beta_B_norm": 0.0,
+                "beta_Phi_norm": 0.0,
+                "sidrce_omega": 1.0,
+                "eft_m_kk_gev": 1.0e16,
+                "ricci_norm": 0.02,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "mica.yaml").write_text(
+        "\n".join(
+            [
+                "mica_spec: \"0.2.2\"",
+                "name: demo-project",
+                "mode: memory_injection",
+                "layers:",
+                "  - name: archive",
+                "    path: memory/demo.mica.v1.0.0.json",
+                "invocation_protocol:",
+                "  primary_pattern: readme_protocol",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "memory" / "demo.mica.v1.0.0.json").write_text(
+        json.dumps(
+            {
+                "project": {"name": "demo-project"},
+                "design_invariants": [{"id": "DI-001", "severity": "critical"}],
+                "operation_meta": {
+                    "archive_id": "MICA-DEMO-CLI-001",
+                    "last_updated": "2026-04-12",
+                    "current_state": "active",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    leda_path = tmp_path / "leda.yaml"
+    leda_path.write_text(
+        yaml.safe_dump(
+            {
+                "source": {"analyzer": "LEDA", "generated_at": "2026-04-12T00:00:00Z"},
+                "security": {"classification": "restricted", "ingestible_by_spar": True},
+                "claim_risk": [{"id": "registry_drift", "severity": "high"}],
+                "maturity": {"suggested_current": "partial"},
+                "spar_review_hints": {"preferred_layers": ["Layer C"]},
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "review.json"
+
+    import sys
+    from unittest.mock import patch
+
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "spar-context-review",
+            "--subject-json",
+            str(subject_path),
+            "--source",
+            "flat minkowski",
+            "--gate",
+            "PASS",
+            "--project-root",
+            str(tmp_path),
+            "--leda-injection",
+            str(leda_path),
+            "--output-json",
+            str(output_path),
+        ],
+    ):
+        rc = main()
+
+    assert rc == 0
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["context_summary"]["mica"]["state"] == "INVOCATION_MODE"
+    assert payload["context_summary"]["mica"]["archive_id"] == "MICA-DEMO-CLI-001"

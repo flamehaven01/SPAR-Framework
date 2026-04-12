@@ -66,6 +66,9 @@ Built in physics. Applicable anywhere outputs can pass while claims drift.
 - [LEDA Injection Contract](docs/LEDA_INJECTION_CONTRACT.md)
 - [MICA -> LEDA -> SPAR Workflow](docs/MICA_LEDA_SPAR_WORKFLOW.md)
 
+SPAR can auto-discover `MICA` from a project root using the v0.2.2 runtime
+detection order. Explicit `--mica-context` still overrides discovery.
+
 ## Security Model
 
 - [Security Model](docs/SECURITY_MODEL.md)
@@ -274,7 +277,7 @@ spar-context-review \
   --subject-json subject.json \
   --source "flat minkowski" \
   --gate PASS \
-  --mica-context mica.yaml \
+  --project-root /path/to/project \
   --leda-injection reports/leda_injection.yaml \
   --output-json review.json
 ```
