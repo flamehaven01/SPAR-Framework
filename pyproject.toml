@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spar-framework"
-version = "0.1.0"
+version = "0.1.1"
 description = "Standalone deterministic admissibility-review framework"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,9 +25,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/Flamehaven/spar-framework"
-Repository = "https://github.com/Flamehaven/spar-framework"
-Issues = "https://github.com/Flamehaven/spar-framework/issues"
+Homepage = "https://github.com/flamehaven01/SPAR-Framework#readme"
+Repository = "https://github.com/flamehaven01/SPAR-Framework"
+Issues = "https://github.com/flamehaven01/SPAR-Framework/issues"
 
 [project.optional-dependencies]
 dev = [

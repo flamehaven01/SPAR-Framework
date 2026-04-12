@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.1] - 2026-04-12
+
+### PyPI publishing readiness
+
+- Added GitHub Actions publish workflow:
+  - `.github/workflows/publish.yml`
+- Aligned package metadata URLs with the live repository:
+  - `Homepage`
+  - `Repository`
+  - `Issues`
+- Prepared the repository for PyPI Trusted Publisher flow using GitHub OIDC
+- Preserved the standalone kernel, physics adapter, and current passing test/build state
+
 ## [0.1.0] - 2026-04-11
 
 ### Initial scaffold
