@@ -787,6 +787,18 @@ def test_spar_schema_subcommand_emits_subject_contract(capsys):
     assert "beta_G_norm" in payload["properties"]
 
 
+def test_spar_schema_subcommand_writes_schema_file(tmp_path):
+    from spar_framework.cli import main
+
+    output_path = tmp_path / "subject-schema.json"
+
+    rc = main(["schema", "subject", "--output-json", str(output_path)])
+
+    assert rc == 0
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["title"] == "SPAR Physics Subject"
+
+
 def test_spar_example_subcommand_writes_example(tmp_path):
     from spar_framework.cli import main
 

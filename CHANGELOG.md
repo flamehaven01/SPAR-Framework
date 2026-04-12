@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-04-12
+
 ### CLI
 
 - Added AI-friendly `spar` CLI with explicit subcommands:
@@ -13,6 +15,7 @@
 - Preserved `spar-context-review` as a legacy compatibility entrypoint
 - Added `docs/CLI.md` to document command contracts, exit codes, and security defaults
 - Promoted `subject`, `result`, and `context` schemas into packaged JSON artifacts under `src/spar_framework/schemas/`
+- Added `--output-json` support to `spar schema`
 
 ### Integration docs
 
@@ -66,6 +69,11 @@
   - three-layer structure
   - scoring
   - fit / adoption / docs
+
+### Publishing
+
+- Simplified `.github/workflows/publish.yml` to publish on version tags and manual dispatch only
+- Removed release-event publishing to avoid duplicate PyPI publish attempts for the same version
 
 ## [0.1.1] - 2026-04-12
 

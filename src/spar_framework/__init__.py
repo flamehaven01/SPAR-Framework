@@ -1,6 +1,6 @@
 """Standalone SPAR framework scaffold."""
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 from .engine import ReviewRuntime, run_review
 from .interfaces import LayerABuilder, LayerBBuilder, LayerCBuilder

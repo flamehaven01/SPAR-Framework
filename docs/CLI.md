@@ -94,6 +94,7 @@ Emit schema guidance for subjects, results, or contextual inputs.
 spar schema subject
 spar schema result
 spar schema context
+spar schema subject --output-json subject-schema.json
 ```
 
 These payloads come from packaged JSON schema artifacts under `src/spar_framework/schemas/`, not from ad hoc in-code dicts.

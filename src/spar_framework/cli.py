@@ -68,6 +68,10 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["subject", "result", "context"],
         help="Schema target to emit",
     )
+    schema.add_argument(
+        "--output-json",
+        help="Optional path to write the schema JSON payload",
+    )
 
     example = subparsers.add_parser(
         "example",
@@ -240,7 +244,10 @@ def _run_discover(args: argparse.Namespace) -> int:
 
 def _run_schema(args: argparse.Namespace) -> int:
     payload = load_schema(args.target)
-    print(json.dumps(payload, indent=2))
+    encoded = json.dumps(payload, indent=2)
+    if args.output_json:
+        Path(args.output_json).write_text(encoded, encoding="utf-8")
+    print(encoded)
     return EXIT_OK
 
 
