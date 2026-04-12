@@ -1,4 +1,4 @@
-# spar-framework
+# SPAR-Framework
 
 ![SPAR Logo](logo.png)
 
