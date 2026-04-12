@@ -13,6 +13,12 @@ Use SPAR when:
 - analytical anchors matter
 - maturity state changes what a result is allowed to claim
 - approximation, boundedness, or partial closure must remain visible
+- runtime memory state and invariant continuity should tighten review, not stay outside it
+
+In the current physics adapter, this contextual tightening already appears as:
+
+- `B5` — MICA runtime state
+- `C10` — MICA invariant continuity
 
 ### Scientific computing
 
@@ -21,6 +27,14 @@ Use SPAR when:
 - reproducibility is necessary but not sufficient
 - review must distinguish exact, approximate, heuristic, and bounded results
 - implementation changes can outpace governance language
+
+This is also the natural bridge to the next adapter direction:
+
+- generic scientific-model review for PDEs
+- dynamical and control models
+- inverse and calibration models
+- constrained optimization systems
+- scientific ML surrogates
 
 ## Secondary fit
 

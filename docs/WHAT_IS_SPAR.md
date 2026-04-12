@@ -56,5 +56,17 @@ SPAR is:
 - a registry-backed maturity and gap model
 - a layered framework for reviewing claim-worthiness
 
+In the current physics adapter, contextual review now includes:
+
+- `B5` — MICA runtime state
+- `C10` — MICA invariant continuity
+
+Those checks do not replace physics contracts. They tighten interpretation and
+maturity review around them.
+
 The first adapter in this repository is physics. That is the proof case, not
 the final limit of the framework.
+
+The next expansion path is a **scientific-model adapter** for PDE systems,
+dynamical systems, inverse problems, constrained optimization models, and
+scientific ML surrogates.
