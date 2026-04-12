@@ -41,6 +41,13 @@
 - Physics Layer C now reads MICA invariant continuity as a maturity-context
   signal
 
+### Documentation
+
+- Added contextual README examples for `INVOCATION_MODE` and `LEGACY_MODE`
+- Added architecture notes for `B5` and `C10`
+- Added `docs/SCIENTIFIC_MODEL_ADAPTER.md` as the next adapter draft
+- Added repository logo to README
+
 ## [0.1.1] - 2026-04-12
 
 ### PyPI publishing readiness

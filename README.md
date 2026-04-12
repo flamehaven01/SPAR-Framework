@@ -1,5 +1,7 @@
 # spar-framework
 
+![SPAR Logo](logo.png)
+
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![CI](https://github.com/flamehaven01/SPAR-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/flamehaven01/SPAR-Framework/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/flamehaven01/SPAR-Framework)](https://github.com/flamehaven01/SPAR-Framework/releases)
@@ -16,8 +18,10 @@
 [Integration Contracts](#integration-contracts) •
 [Security Model](#security-model) •
 [Quick Start](#quick-start) •
+[Contextual Output Example](#contextual-output-example) •
 [Architecture](#architecture) •
 [Repository Layout](#repository-layout) •
+[Next Adapter](#next-adapter) •
 [Development](#development) •
 [Changelog](CHANGELOG.md)
 
@@ -60,6 +64,7 @@ Built in physics. Applicable anywhere outputs can pass while claims drift.
 - [Admissibility](docs/ADMISSIBILITY.md)
 - [Physics as the Proof Case](docs/PHYSICS_PROOF_CASE.md)
 - [Use Cases](docs/USE_CASES.md)
+- [Scientific Model Adapter Draft](docs/SCIENTIFIC_MODEL_ADAPTER.md)
 
 ## Integration Contracts
 
@@ -231,6 +236,17 @@ in prose.
 Layer A / B / C logic stays domain-owned. This repository already includes a
 working physics adapter as the first proof case.
 
+**Contextual tightening through MICA and LEDA**  
+Physics Layer B/C can now consume restricted contextual signals:
+
+- `B4` — LEDA claim-risk surface
+- `B5` — MICA runtime state
+- `C9` — LEDA maturity alignment
+- `C10` — MICA invariant continuity
+
+These checks do not replace physics contracts. They tighten interpretation and
+maturity review around those contracts.
+
 ## What SPAR Does Not Provide
 
 - a universal truth engine
@@ -282,6 +298,60 @@ spar-context-review \
   --output-json review.json
 ```
 
+`--project-root` triggers MICA auto-discovery using the v0.2.2 runtime
+detection order. If `mica.yaml` is present, SPAR records
+`INVOCATION_MODE`. If only a legacy archive exists, SPAR records
+`LEGACY_MODE`.
+
+## Contextual Output Example
+
+Simplified review excerpt:
+
+```json
+{
+  "context_summary": {
+    "sources": ["mica", "leda"],
+    "mica": {
+      "state": "INVOCATION_MODE",
+      "mode": "memory_injection",
+      "archive_id": "MICA-DEMO-CLI-001",
+      "critical_invariants": 1,
+      "high_invariants": 0
+    },
+    "leda": {
+      "classification": "restricted",
+      "claim_risk_count": 1,
+      "suggested_maturity": "partial"
+    }
+  },
+  "layer_b": [
+    {"check_id": "B5", "status": "PASS"}
+  ],
+  "layer_c": [
+    {"check_id": "C9", "status": "APPROXIMATION"},
+    {"check_id": "C10", "status": "GENUINE"}
+  ]
+}
+```
+
+Legacy mode is intentionally weaker:
+
+```json
+{
+  "context_summary": {
+    "mica": {
+      "state": "LEGACY_MODE"
+    }
+  },
+  "layer_b": [
+    {"check_id": "B5", "status": "WARN"}
+  ],
+  "layer_c": [
+    {"check_id": "C10", "status": "APPROXIMATION"}
+  ]
+}
+```
+
 ## Architecture
 
 SPAR separates claim-aware review into three layers.
@@ -295,6 +365,11 @@ Checks whether output agrees with a declared analytical or contractual anchor.
 Checks whether report language and declared scope stay within what the
 implementation state justifies.
 
+Contextual physics checks now include:
+
+- `B4` — restricted LEDA claim-risk surface
+- `B5` — MICA runtime state (`INVOCATION_MODE`, `LEGACY_MODE`, `INACTIVE`)
+
 ### Layer C — Existence and Maturity Probes
 
 Checks what kind of implementation produced the result:
@@ -304,6 +379,11 @@ Checks what kind of implementation produced the result:
 - gapped
 - environment-conditional
 - research-only
+
+Contextual physics checks now include:
+
+- `C9` — restricted LEDA maturity alignment
+- `C10` — MICA invariant continuity
 
 The core package stays domain-agnostic. Domain adapters provide anchors,
 contracts, and maturity logic.
@@ -341,6 +421,20 @@ visible and costly.
 - `docs/`
 - `mica.yaml`
 - `memory/`
+
+## Next Adapter
+
+The next adapter should not be another governance wrapper. It should be a
+generic scientific-model adapter for:
+
+- PDE and simulation pipelines
+- dynamical systems and control models
+- inverse and calibration models
+- constrained optimization models
+- scientific ML surrogates
+
+That adapter would keep SPAR anchored to mathematical and physical model
+validation while broadening it beyond the current physics proof case.
 
 ## Start Here
 
