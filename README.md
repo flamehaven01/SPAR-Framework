@@ -5,6 +5,25 @@
 [![Release](https://img.shields.io/github/v/release/flamehaven01/SPAR-Framework)](https://github.com/flamehaven01/SPAR-Framework/releases)
 [![Adapter](https://img.shields.io/badge/adapter-physics-informational.svg)](https://github.com/flamehaven01/SPAR-Framework/tree/main/src/spar_domain_physics)
 
+**Navigation:**  
+[Workflow](#workflow) •
+[Why Teams Use It](#why-teams-use-it) •
+[Why This Matters](#why-this-matters) •
+[Where It Fits](#where-it-fits) •
+[Adoption Path](#adoption-path) •
+[What SPAR Provides](#what-spar-provides) •
+[Quick Start](#quick-start) •
+[Architecture](#architecture) •
+[Repository Layout](#repository-layout) •
+[Development](#development) •
+[Changelog](CHANGELOG.md)
+
+---
+
+**SPAR (Sovereign Physics Autonomous Review)**
+
+A deterministic adversarial review layer, first extracted from an open physics simulation and AI governance engine.
+
 Claim-aware review for systems whose outputs can pass while their claims drift.
 
 SPAR is the framework behind that review. It checks whether an output deserves
@@ -30,44 +49,6 @@ Built in physics. Applicable anywhere outputs can pass while claims drift.
 
 ---
 
-**Navigation:**  
-[Why This Matters](#why-this-matters) •
-[Workflow](#workflow) •
-[Why Teams Use It](#why-teams-use-it) •
-[Where It Fits](#where-it-fits) •
-[Adoption Path](#adoption-path) •
-[What SPAR Provides](#what-spar-provides) •
-[Quick Start](#quick-start) •
-[Architecture](#architecture) •
-[Repository Layout](#repository-layout) •
-[Development](#development) •
-[Changelog](CHANGELOG.md)
-
----
-
-## Why This Matters
-
-Most review systems stop at output correctness.
-
-They ask:
-
-- did the code run
-- did the test pass
-- did the score stay within bounds
-
-SPAR asks a harder question:
-
-- does the claim still deserve to stand
-
-That distinction matters in real systems:
-
-- a patch can pass tests while overstating completeness
-- an analytics dashboard can stay green while the interpretation becomes stale
-- a model score can remain reproducible while its maturity state changes
-- a scientific result can stay numerically stable while the justification weakens
-
-This is the gap SPAR is built to review.
-
 ## Workflow
 
 ```mermaid
@@ -92,23 +73,58 @@ flowchart LR
 Ordinary review asks whether the system still passes. SPAR asks whether the
 claim deserves to survive that pass.
 
+---
+
+## Why This Matters
+
+SPAR is built first for **physics-grade and mathematical model review**.
+
+That means systems where:
+
+- numerical output can look stable
+- analytical contracts matter
+- maturity state changes what the result is allowed to claim
+- a model can be exact, approximate, bounded, partial, or heuristic in ways that must remain visible
+
+In those environments, ordinary review is too shallow. It usually asks:
+
+- did the code run
+- did the residual stay within bounds
+- did regression remain green
+
+SPAR asks a harder question:
+
+- does this result still deserve the interpretation attached to it
+
+That matters immediately for physical and mathematical model validation:
+
+- a residual can stay numerically stable while the analytical justification weakens
+- a computation path can become genuine while the registry still records a heuristic
+- an approximation can be reported as closure
+- a model can remain reproducible while its maturity state changes underneath it
+
+The same review pattern then extends beyond physics:
+
+- a patch can pass tests while overstating completeness
+- an analytics dashboard can stay green while the interpretation becomes stale
+- a model score can remain reproducible while its maturity state changes
+- a scientific result can stay numerically stable while the attached claim becomes too strong
+
+This is the gap SPAR is built to review.
+
 ## Why Teams Use It
 
-**Keep green outputs honest**  
-When CI stays green but implementation and claim drift apart, SPAR gives teams
-a review layer that can force a warning, downgrade, or reclassification before
-false confidence becomes policy or product language.
+**Validate mathematical model claims, not only outputs**  
+SPAR is most useful when teams need to review physical, mathematical, or scientific models whose outputs can pass numerically while the surrounding claim has become too strong, too stale, or too vague.
 
-**Attach maturity to results**  
-SPAR keeps exact, approximate, partial, heuristic, and environment-conditional
-states visible at review time. That matters for model governance, regulated
-pipelines, scientific systems, and any workflow where reproducibility is not
-enough.
+**Keep analytical and implementation state synchronized**  
+SPAR gives teams a review layer that can force a warning, downgrade, or reclassification when the model, registry, and outward-facing interpretation drift apart.
+
+**Carry maturity labels with results**  
+SPAR keeps `exact`, `approximate`, `partial`, `heuristic`, and `environment_conditional` states visible at review time. That matters in scientific computing first, and in other high-stakes review workflows second.
 
 **Adopt it in layers**  
-Teams do not need the full framework on day one. A lightweight claim check, a
-small maturity registry, and a full Layer A/B/C review path can be introduced
-as separate maturity levels.
+Teams do not need the full framework on day one. A lightweight claim check, a small maturity registry, and a full Layer A/B/C review path can be introduced as separate maturity levels.
 
 ## Where It Fits
 
@@ -118,9 +134,19 @@ It is a deterministic review framework for one specific problem:
 
 **checking whether outputs deserve the claims attached to them.**
 
-That makes it useful above ordinary regression and below broad governance prose.
-It gives teams a structured way to ask what a result is claiming, what
-implementation state produced it, and what maturity state must travel with it.
+Its primary fit is:
+
+- physics and mathematical model validation
+- scientific computing pipelines
+- research systems that need explicit admissibility or maturity surfaces
+
+Its secondary fit is:
+
+- model governance
+- AI code review
+- regulated analytics and reporting
+
+That makes it useful above ordinary regression and below broad governance prose. It gives teams a structured way to ask what a result is claiming, what implementation state produced it, and what maturity state must travel with it.
 
 ## Adoption Path
 
