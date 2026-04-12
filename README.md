@@ -1,7 +1,7 @@
 # SPAR Framework
 
 <p align="center">
-  <img src="logo.png" alt="SPAR Logo" width="320" />
+  <img src="logo.png" alt="SPAR Logo" width="480" />
 </p>
 
 <p align="center">
