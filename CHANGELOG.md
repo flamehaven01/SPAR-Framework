@@ -74,6 +74,8 @@
 
 - Simplified `.github/workflows/publish.yml` to publish on version tags and manual dispatch only
 - Removed release-event publishing to avoid duplicate PyPI publish attempts for the same version
+- Added a PyPI version badge to the README
+- Opted the publish workflow into Node 24 for GitHub JavaScript actions
 
 ## [0.1.1] - 2026-04-12
 

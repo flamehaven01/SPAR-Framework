@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python"/></a>
   <a href="https://github.com/flamehaven01/SPAR-Framework/actions/workflows/ci.yml"><img src="https://github.com/flamehaven01/SPAR-Framework/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <a href="https://pypi.org/project/spar-framework/"><img src="https://img.shields.io/pypi/v/spar-framework" alt="PyPI"/></a>
   <a href="https://github.com/flamehaven01/SPAR-Framework/releases"><img src="https://img.shields.io/github/v/release/flamehaven01/SPAR-Framework" alt="Release"/></a>
   <a href="https://github.com/flamehaven01/SPAR-Framework/tree/main/src/spar_domain_physics"><img src="https://img.shields.io/badge/adapter-physics-informational.svg" alt="Adapter"/></a>
 </p>
