@@ -694,3 +694,107 @@ def test_spar_context_review_cli_can_auto_discover_mica(tmp_path):
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert payload["context_summary"]["mica"]["state"] == "INVOCATION_MODE"
     assert payload["context_summary"]["mica"]["archive_id"] == "MICA-DEMO-CLI-001"
+
+
+def test_spar_review_subcommand_writes_json(tmp_path):
+    from spar_framework.cli import main
+
+    subject_path = tmp_path / "subject.json"
+    subject_path.write_text(
+        json.dumps(
+            {
+                "beta_G_norm": 0.0,
+                "beta_B_norm": 0.0,
+                "beta_Phi_norm": 0.0,
+                "sidrce_omega": 1.0,
+                "eft_m_kk_gev": 1.0e16,
+                "ricci_norm": 0.02,
+            }
+        ),
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "review.json"
+
+    rc = main(
+        [
+            "review",
+            "--subject-json",
+            str(subject_path),
+            "--source",
+            "flat minkowski",
+            "--gate",
+            "PASS",
+            "--output-json",
+            str(output_path),
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["verdict"] == "MINOR_REVISION"
+    assert payload["score"] >= 70
+    assert payload["context_summary"] is None
+
+
+def test_spar_explain_subcommand_emits_summary(tmp_path, capsys):
+    from spar_framework.cli import main
+
+    review_path = tmp_path / "review.json"
+    review_path.write_text(
+        json.dumps(
+            {
+                "verdict": "MINOR_REVISION",
+                "score": 78,
+                "grade": "WARN",
+                "context_summary": {"sources": ["mica"]},
+                "layer_a": [{"check_id": "A1", "status": "PASS"}],
+                "layer_b": [{"check_id": "B5", "status": "WARN"}],
+                "layer_c": [{"check_id": "C10", "status": "APPROXIMATION"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    rc = main(["explain", "--review-json", str(review_path), "--format", "text"])
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "verdict: MINOR_REVISION" in out
+    assert "layer_b_flags: B5" in out
+    assert "context_sources: mica" in out
+
+
+def test_spar_discover_subcommand_reports_profiles(tmp_path, capsys):
+    from spar_framework.cli import main
+
+    rc = main(["discover", "--project-root", str(tmp_path), "--adapter", "physics"])
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["adapter"] == "physics"
+    assert payload["mica"]["state"] == "INACTIVE"
+    assert payload["leda"]["recommended_profile"] == "restricted"
+
+
+def test_spar_schema_subcommand_emits_subject_contract(capsys):
+    from spar_framework.cli import main
+
+    rc = main(["schema", "subject"])
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["adapter"] == "physics"
+    assert "beta_G_norm" in payload["fields"]
+
+
+def test_spar_example_subcommand_writes_example(tmp_path):
+    from spar_framework.cli import main
+
+    output_path = tmp_path / "example.json"
+
+    rc = main(["example", "--source", "flat", "--output-json", str(output_path)])
+
+    assert rc == 0
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["source"] == "flat"
+    assert payload["subject"]["beta_G_norm"] == 0.0

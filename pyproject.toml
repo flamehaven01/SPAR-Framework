@@ -38,7 +38,8 @@ dev = [
 ]
 
 [project.scripts]
-spar-context-review = "spar_framework.cli:main"
+spar = "spar_framework.cli:main"
+spar-context-review = "spar_framework.cli:legacy_main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

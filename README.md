@@ -105,7 +105,7 @@ print(result.model_registry_snapshot["total_models"]) # registry-backed maturity
 **Contextual workflow** with MICA and optional LEDA:
 
 ```bash
-spar-context-review \
+spar review \
   --subject-json subject.json \
   --source "flat minkowski" \
   --gate PASS \
@@ -115,6 +115,16 @@ spar-context-review \
 ```
 
 `--project-root` triggers MICA auto-discovery using the v0.2.2 runtime detection order. If `mica.yaml` is present, SPAR records `INVOCATION_MODE`. If only a legacy archive exists, SPAR records `LEGACY_MODE`.
+
+**AI-friendly CLI surface**
+
+```bash
+spar review    # run machine-readable review
+spar explain   # summarize an existing review JSON
+spar discover  # detect adapter + MICA runtime state
+spar schema    # emit subject/result/context contracts
+spar example   # emit example subject payloads
+```
 
 ## Three-Layer Structure
 
@@ -310,6 +320,7 @@ See [docs/SCIENTIFIC_MODEL_ADAPTER.md](docs/SCIENTIFIC_MODEL_ADAPTER.md) for the
 | [Physics as the Proof Case](docs/PHYSICS_PROOF_CASE.md) | Why physics comes first |
 | [Use Cases](docs/USE_CASES.md) | Where and how to apply SPAR |
 | [Scientific Model Adapter Draft](docs/SCIENTIFIC_MODEL_ADAPTER.md) | Next adapter direction |
+| [CLI](docs/CLI.md) | AI-friendly command surface and exit-code contract |
 | [LEDA Injection Contract](docs/LEDA_INJECTION_CONTRACT.md) | Integration contract |
 | [MICA -> LEDA -> SPAR Workflow](docs/MICA_LEDA_SPAR_WORKFLOW.md) | Contextual workflow |
 | [Security Model](docs/SECURITY_MODEL.md) | Security design |

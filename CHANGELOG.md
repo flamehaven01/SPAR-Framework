@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### CLI
+
+- Added AI-friendly `spar` CLI with explicit subcommands:
+  - `review`
+  - `explain`
+  - `discover`
+  - `schema`
+  - `example`
+- Preserved `spar-context-review` as a legacy compatibility entrypoint
+- Added `docs/CLI.md` to document command contracts, exit codes, and security defaults
+
 ### Integration docs
 
 - Added `docs/LEDA_INJECTION_CONTRACT.md`
