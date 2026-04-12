@@ -74,6 +74,10 @@ If these roles collapse together, the system becomes harder to reason about.
 The architecture works because each engine is responsible for a different kind
 of truth surface.
 
+`MICA` is not just loaded and forgotten. In contextual review, its runtime
+state and invariant surface can tighten Layer B/Layer C interpretation without
+replacing domain-specific physics checks.
+
 ## MICA Runtime Contract in SPAR
 
 When a project root is provided, SPAR follows the MICA v0.2.2 detection order:

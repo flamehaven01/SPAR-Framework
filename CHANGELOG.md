@@ -36,6 +36,10 @@
   reports claim-risk candidates
 - Physics Layer C now emits an additional maturity-alignment check from
   restricted LEDA context
+- Physics Layer B now reads MICA runtime state as an interpretation-tightening
+  signal
+- Physics Layer C now reads MICA invariant continuity as a maturity-context
+  signal
 
 ## [0.1.1] - 2026-04-12
 

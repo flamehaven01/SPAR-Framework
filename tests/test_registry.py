@@ -293,6 +293,7 @@ def test_physics_layer_b_warns_on_slop_phrase():
     assert checks[1].status == "WARN"
     assert checks[2].status == "WARN"
     assert checks[3].status == "CANNOT_CHECK"
+    assert checks[4].status == "CANNOT_CHECK"
 
 
 def test_physics_layer_b_reads_leda_claim_surface():
@@ -316,6 +317,30 @@ def test_physics_layer_b_reads_leda_claim_surface():
     )
 
     assert checks[3].status == "WARN"
+    assert checks[4].status == "CANNOT_CHECK"
+
+
+def test_physics_layer_b_reads_mica_runtime_state():
+    from spar_domain_physics.layer_b import build_layer_b
+
+    checks = build_layer_b(
+        subject={
+            "eft_m_kk_gev": 1.0e16,
+            "ricci_norm": 0.02,
+        },
+        source="ads",
+        gate="PASS",
+        report_text="Tight bounded statement.",
+        context={
+            "memory_context": {
+                "archive_id": "MICA-DEMO-001",
+                "invariants": {"critical": 2, "high": 1},
+                "_mica_runtime": {"state": "INVOCATION_MODE"},
+            }
+        },
+    )
+
+    assert checks[4].status == "PASS"
 
 
 def test_physics_runtime_emits_slop_hits_and_registry_snapshots():
@@ -377,6 +402,8 @@ def test_physics_layer_c_flags_missing_omega_as_cannot_determine():
     assert c4.status == "CANNOT_DETERMINE"
     c9 = next(check for check in checks if check.check_id == "C9")
     assert c9.status == "CANNOT_CHECK"
+    c10 = next(check for check in checks if check.check_id == "C10")
+    assert c10.status == "CANNOT_CHECK"
 
 
 def test_physics_layer_c_reads_leda_maturity_alignment():
@@ -397,6 +424,50 @@ def test_physics_layer_c_reads_leda_maturity_alignment():
 
     c9 = next(check for check in checks if check.check_id == "C9")
     assert c9.status == "APPROXIMATION"
+    c10 = next(check for check in checks if check.check_id == "C10")
+    assert c10.status == "CANNOT_CHECK"
+
+
+def test_physics_layer_c_reads_mica_invariant_continuity():
+    from spar_domain_physics.layer_c import build_layer_c
+
+    checks = build_layer_c(
+        subject={},
+        source="wzw background",
+        gate="PASS",
+        params={},
+        context={
+            "memory_context": {
+                "pct_status": "active",
+                "invariants": {"critical": 2, "high": 1},
+                "_mica_runtime": {"state": "INVOCATION_MODE"},
+            }
+        },
+    )
+
+    c10 = next(check for check in checks if check.check_id == "C10")
+    assert c10.status == "GENUINE"
+
+
+def test_physics_layer_c_marks_legacy_mica_as_approximation():
+    from spar_domain_physics.layer_c import build_layer_c
+
+    checks = build_layer_c(
+        subject={},
+        source="wzw background",
+        gate="PASS",
+        params={},
+        context={
+            "memory_context": {
+                "pct_status": "active",
+                "invariants": {"critical": 1, "high": 0},
+                "_mica_runtime": {"state": "LEGACY_MODE"},
+            }
+        },
+    )
+
+    c10 = next(check for check in checks if check.check_id == "C10")
+    assert c10.status == "APPROXIMATION"
 
 
 def test_public_leda_payload_is_not_ingested_by_physics_layers():
