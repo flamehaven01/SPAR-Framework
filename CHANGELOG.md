@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-04-13
+
+### Release correction
+
+- Reissued the package from the correct `main` head after the `v0.1.3` tag was found to point at an older `0.1.2` commit
+- Preserved the `0.1.3` code changes while publishing them under a clean `0.1.4` package and release tag
+
 ## [0.1.3] - 2026-04-13
 
 ### Physics adapter correctness
