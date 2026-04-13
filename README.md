@@ -14,6 +14,7 @@
   <a href="https://pypi.org/project/spar-framework/"><img src="https://img.shields.io/pypi/v/spar-framework" alt="PyPI"/></a>
   <a href="https://github.com/flamehaven01/SPAR-Framework/releases"><img src="https://img.shields.io/github/v/release/flamehaven01/SPAR-Framework" alt="Release"/></a>
   <a href="https://github.com/flamehaven01/SPAR-Framework/tree/main/src/spar_domain_physics"><img src="https://img.shields.io/badge/adapter-physics-informational.svg" alt="Adapter"/></a>
+  <a href="docs/CLI.md"><img src="https://img.shields.io/badge/docs_sanity-pass-brightgreen.svg" alt="Docs Sanity"/></a>
 </p>
 
 <p align="center">
@@ -32,6 +33,12 @@
 SPAR (Sovereign Physics Autonomous Review) is a deterministic framework for **claim-aware review**: checking not whether a system still produces stable output, but whether that output deserves the interpretation attached to it.
 
 **SPAR is not a physics-only framework. Physics is where we stress-tested it.**
+
+Recent correctness fixes tightened:
+
+- analytical constant single-source consistency
+- source matching for `ads` vs `linear_dilaton`
+- CLI type safety and packaged schema contract
 
 ```text
 outputs can stay green  ->  while implementation state changes underneath

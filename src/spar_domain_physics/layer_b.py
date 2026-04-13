@@ -22,6 +22,9 @@ def build_layer_b(
     report_text: str,
     context: dict[str, Any] | None = None,
 ) -> list:
+    # Layer B currently evaluates interpretation against subject + contextual
+    # review state. Source and gate are passed through the runtime contract but
+    # are not direct inputs to the present physics adapter checks.
     del source, gate
     b3, _, _ = check_b3(report_text)
     leda = extract_leda_summary(context)

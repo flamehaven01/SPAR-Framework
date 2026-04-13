@@ -22,6 +22,9 @@ def build_layer_c(
     params: dict[str, Any],
     context: dict[str, Any] | None = None,
 ) -> list:
+    # Layer C is scoped to implementation-path and maturity probes in the
+    # current adapter. Gate and free-form params are reserved for future
+    # extensions but do not influence the existing checks.
     del gate, params
     leda = extract_leda_summary(context)
     mica = extract_mica_summary(context)

@@ -40,7 +40,9 @@ def match_ground_truth_source(source: str) -> str | None:
             if key == "wzw":
                 return _match_wzw_special_case(normalized) or key
             if key == "linear_dilaton":
-                return _match_linear_dilaton_special_case(normalized) or key
+                result = _match_linear_dilaton_special_case(normalized)
+                if result is not None:
+                    return result
+                continue
             return key
     return _match_wzw_special_case(normalized) or _match_linear_dilaton_special_case(normalized)
-

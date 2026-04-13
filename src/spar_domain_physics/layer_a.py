@@ -17,6 +17,9 @@ def build_layer_a(
     params: dict[str, Any],
     context: dict[str, Any] | None = None,
 ) -> list:
+    # Layer A is intentionally anchor-pure: contextual memory/code signals must
+    # not change analytical contract checks unless a future adapter adds an
+    # explicit context-aware anchor rule.
     del context
     gt = get_ground_truth(source)
     beta_tol_g = float(params.get("beta_tol_G", 1e-4))

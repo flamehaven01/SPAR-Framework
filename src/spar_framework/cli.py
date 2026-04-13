@@ -6,6 +6,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 from spar_domain_physics.ground_truth_table import GROUND_TRUTH
 from spar_domain_physics.runtime import get_review_runtime

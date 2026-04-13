@@ -5,8 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from spar_framework.result_types import CheckResult
-
-PLANCK_MASS_GEV = 1.22e19
+from .ground_truth import PLANCK_MASS_GEV
 
 
 def check_a4(gate: str, gt: dict[str, Any] | None, source: str) -> CheckResult:
@@ -42,4 +41,3 @@ def check_a6(eft_kk: Any) -> CheckResult:
             return CheckResult("A6", "EFT m_KK < Planck scale", "CONSISTENT", f"m_KK={kk:.3g} GeV < M_Pl={PLANCK_MASS_GEV:.3g} GeV", "EFT validity")
         return CheckResult("A6", "EFT m_KK < Planck scale", "ANOMALY", f"m_KK={kk:.3g} GeV >= M_Pl={PLANCK_MASS_GEV:.3g} GeV -- EFT breakdown", "EFT validity")
     return CheckResult("A6", "EFT m_KK < Planck scale", "CANNOT_CHECK", "eft_m_kk_gev not in output")
-

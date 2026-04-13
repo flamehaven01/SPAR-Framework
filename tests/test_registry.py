@@ -244,6 +244,13 @@ def test_physics_layer_a_matches_flat_ground_truth():
     assert checks[3].status == "CONSISTENT"
 
 
+def test_planck_mass_constant_is_single_source():
+    from spar_domain_physics.ground_truth import PLANCK_MASS_GEV as truth_planck
+    from spar_domain_physics.layer_a_runtime_checks import PLANCK_MASS_GEV as layer_a_planck
+
+    assert layer_a_planck == truth_planck
+
+
 def test_physics_layer_a_flags_gate_mismatch():
     from spar_domain_physics.layer_a import build_layer_a
 
@@ -258,6 +265,12 @@ def test_physics_layer_a_flags_gate_mismatch():
     )
 
     assert checks[3].status == "ANOMALY"
+
+
+def test_matcher_does_not_misclassify_ads_dilaton_as_linear_dilaton():
+    from spar_domain_physics.matcher import match_ground_truth_source
+
+    assert match_ground_truth_source("ads dilaton") == "ads"
 
 
 def test_physics_layer_b_flags_eft_scope_failure():

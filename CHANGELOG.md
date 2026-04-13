@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-04-13
+
+### Physics adapter correctness
+
+- Removed the duplicate `PLANCK_MASS_GEV` definition from Layer A runtime checks so A6 and B1 now share the same source constant
+- Fixed `match_ground_truth_source()` so `ads dilaton` no longer falls through to the `linear_dilaton` table
+- Restored `Any` import in the CLI example-subject type surface
+
+### Review architecture documentation
+
+- Added explicit comments clarifying why Layer A ignores context, Layer B ignores source/gate, and Layer C ignores gate/params in the current physics adapter
+- Added a `docs_sanity` badge and a short correctness-fix note to the README hero surface
+
+### Validation
+
+- Added regression coverage for:
+  - single-source Planck mass consistency
+  - `ads dilaton` matcher correctness
+- Verified current package state with `34` passing tests
+
 ## [0.1.2] - 2026-04-12
 
 ### CLI
