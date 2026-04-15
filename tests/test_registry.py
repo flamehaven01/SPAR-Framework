@@ -1,5 +1,7 @@
 import json
+from pathlib import Path
 
+from spar_framework import __version__
 from spar_framework.registry import GapSpec, ModelSpec, gap_registry_snapshot, model_registry_snapshot
 
 
@@ -825,6 +827,17 @@ def test_spar_example_subcommand_writes_example(tmp_path):
     assert payload["subject"]["beta_G_norm"] == 0.0
 
 
+def test_spar_unknown_subcommand_returns_structured_error(capsys):
+    from spar_framework.cli import EXIT_INPUT_ERROR, main
+
+    rc = main(["frobnicate"])
+
+    assert rc == EXIT_INPUT_ERROR
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["error"] == "unknown_command"
+    assert "frobnicate" in payload["detail"]
+
+
 def test_load_schema_reads_packaged_artifact():
     from spar_framework.schema_loader import load_schema
 
@@ -835,3 +848,12 @@ def test_load_schema_reads_packaged_artifact():
     assert subject_schema["title"] == "SPAR Physics Subject"
     assert result_schema["title"] == "SPAR Review Result"
     assert context_schema["title"] == "SPAR Context Contracts"
+
+
+def test_mica_archive_version_tracks_package_version():
+    archive = json.loads(
+        Path("memory/spar-framework.mica.v1.0.0.json").read_text(encoding="utf-8")
+    )
+
+    assert archive["project"]["version"] == __version__
+    assert archive["operation_meta"]["baseline_ref"].startswith(f"v{__version__}-")

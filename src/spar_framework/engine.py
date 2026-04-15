@@ -15,6 +15,13 @@ SlopChecker = Callable[[str], tuple[int, list[str]]]
 
 @dataclass(frozen=True)
 class ReviewRuntime:
+    """Runtime dependency bundle for a single SPAR review execution.
+
+    The three layer builders are required and define the adapter-owned review
+    logic. Snapshot builders and the slop checker are optional so the core can
+    run in minimal mode without registry or report-surface extras.
+    """
+
     build_layer_a: LayerBuilder
     build_layer_b: LayerBuilder
     build_layer_c: LayerBuilder

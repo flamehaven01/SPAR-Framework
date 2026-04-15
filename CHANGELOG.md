@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### External audit follow-up
+
+- Hardened the `spar` CLI so unknown subcommands now return a structured `unknown_command` error instead of falling through to the legacy review path
+- Synchronized the checked-in MICA archive and playbook with the current package release surface (`0.1.4`)
+- Added regression coverage to keep the packaged version and MICA archive metadata aligned
+
 ## [0.1.4] - 2026-04-13
 
 ### Release correction

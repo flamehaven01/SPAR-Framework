@@ -104,8 +104,14 @@ def legacy_main(argv: list[str] | None = None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    if not argv or argv[0].startswith("-") or argv[0] not in SUBCOMMANDS:
+    if not argv or argv[0].startswith("-"):
         return legacy_main(argv)
+    if argv[0] not in SUBCOMMANDS:
+        return _emit_error(
+            EXIT_INPUT_ERROR,
+            "unknown_command",
+            f"Unsupported command: {argv[0]}",
+        )
 
     parser = build_parser()
     args = parser.parse_args(argv)

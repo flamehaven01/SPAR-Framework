@@ -23,19 +23,21 @@ It reviews three things:
 The core package is domain-agnostic. Domain adapters provide analytical anchors,
 scope rules, and registry seed data.
 
-The first adapter package is `spar_domain_physics`. It exists to keep the
-physics contract surface out of the framework core while extraction is still in
-progress.
+The first adapter package is `spar_domain_physics`. It keeps the physics
+contract surface out of the framework core now that the standalone extraction
+is complete.
 
 ## Current Goal
 
-Extract reusable review machinery from TOE without copying TOE's physics
-contracts into the framework core.
+Maintain the standalone review kernel and keep the physics adapter as the first
+proof case without re-coupling TOE-specific contracts into the framework core.
 
-The immediate milestone is a clean split between:
+The next milestone is to extend the adapter surface without diluting the core
+contract boundary:
 
 - `spar_framework`
 - `spar_domain_physics`
+- `scientific-model` adapters that keep their domain contracts outside the core
 
 ## Design Constraints
 
