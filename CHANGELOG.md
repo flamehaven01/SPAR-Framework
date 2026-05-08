@@ -2,11 +2,17 @@
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-05-07
+
 ### External audit follow-up
 
 - Hardened the `spar` CLI so unknown subcommands now return a structured `unknown_command` error instead of falling through to the legacy review path
-- Synchronized the checked-in MICA archive and playbook with the current package release surface (`0.1.4`)
+- Synchronized the checked-in MICA archive and playbook with the current package release surface (`0.1.5`)
 - Added regression coverage to keep the packaged version and MICA archive metadata aligned
+- Separated `framework_declared` adapter policy surfaces from scored subject-derived review findings so static doctrine no longer masquerades as runtime validation
+- Made `spar review` accept the wrapped payload emitted by `spar example`
+- Made `spar explain` null-safe when `context_summary` is absent
+- Externalized the physics adapter review policy into packaged JSON (`src/spar_domain_physics/policies/physics_review_policy.v1.json`) and wired Layer A/B thresholds to that policy data
 
 ## [0.1.4] - 2026-04-13
 

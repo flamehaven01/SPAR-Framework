@@ -58,6 +58,10 @@ Important flags:
 - `--adapter`: current value `physics`
 - `--output-json`: optional file sink
 
+`--subject-json` may point either to a plain subject object or to the wrapped payload emitted by `spar example`. If a wrapper is provided, `spar review` automatically unwraps the `subject` field.
+
+Physics review thresholds and analytical anchors are loaded from packaged policy data, not duplicated as ad hoc CLI constants. The current adapter policy ships under `src/spar_domain_physics/policies/physics_review_policy.v1.json`.
+
 ### `spar explain`
 
 Summarize an existing review JSON.
@@ -107,6 +111,17 @@ Emit example subject payloads.
 spar example --source flat
 spar example --source ads --output-json ads.json
 ```
+
+The emitted payload is intentionally wrapped as:
+
+```json
+{
+  "source": "flat",
+  "subject": { "...": "..." }
+}
+```
+
+This wrapper is accepted directly by `spar review`.
 
 ## Exit codes
 

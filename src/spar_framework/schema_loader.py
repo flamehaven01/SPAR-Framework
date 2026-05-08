@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import json
-from importlib import resources
 from typing import Any
+
+from .package_data import load_packaged_json
 
 SCHEMA_FILES = {
     "subject": "subject.physics.schema.json",
@@ -22,14 +22,4 @@ def load_schema(name: str) -> dict[str, Any]:
         schema_file = SCHEMA_FILES[name]
     except KeyError as exc:
         raise ValueError(f"Unsupported schema target: {name}") from exc
-
-    text = (
-        resources.files("spar_framework")
-        .joinpath("schemas")
-        .joinpath(schema_file)
-        .read_text(encoding="utf-8")
-    )
-    loaded = json.loads(text)
-    if not isinstance(loaded, dict):
-        raise ValueError(f"Schema payload must be a JSON object: {schema_file}")
-    return loaded
+    return load_packaged_json("spar_framework", "schemas", schema_file)

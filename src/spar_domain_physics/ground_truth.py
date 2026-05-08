@@ -6,8 +6,9 @@ from typing import Any
 
 from .matcher import match_ground_truth_source
 from .ground_truth_table import GROUND_TRUTH
+from .policy_loader import get_planck_mass_gev
 
-PLANCK_MASS_GEV = 1.22e19  # GeV
+PLANCK_MASS_GEV = get_planck_mass_gev()
 
 
 def get_ground_truth(source: str) -> dict[str, Any] | None:

@@ -39,6 +39,7 @@ Recent correctness fixes tightened:
 - analytical constant single-source consistency
 - source matching for `ads` vs `linear_dilaton`
 - CLI type safety and packaged schema contract
+- separation of subject-derived findings from framework-declared adapter policy
 
 ```text
 outputs can stay green  ->  while implementation state changes underneath
@@ -116,6 +117,7 @@ result = run_review(
 print(result.verdict)                                 # ACCEPT / MINOR_REVISION / REJECT
 print(result.score)                                   # 0-100 penalty-table score
 print(result.model_registry_snapshot["total_models"]) # registry-backed maturity surface
+print(result.framework_declared[0].basis)             # framework_declared
 ```
 
 **Contextual workflow** with MICA and optional LEDA:
@@ -131,6 +133,8 @@ spar review \
 ```
 
 `--project-root` triggers MICA auto-discovery using the v0.2.2 runtime detection order. If `mica.yaml` is present, SPAR records `INVOCATION_MODE`. If only a legacy archive exists, SPAR records `LEGACY_MODE`.
+
+`spar review` accepts either a plain subject object or the wrapped payload emitted by `spar example` (`{"source": ..., "subject": {...}}`).
 
 **AI-friendly CLI surface**
 
@@ -183,7 +187,7 @@ Contextual physics checks:
 
 ### Layer C — Existence and Maturity Probes
 
-Checks what kind of implementation produced the result:
+Checks what kind of implementation produced the result. Subject-derived Layer C findings are kept separate from framework-declared adapter maturity and limitation policy.
 
 | State | Meaning |
 |---|---|
@@ -192,6 +196,10 @@ Checks what kind of implementation produced the result:
 | `gapped` | Known missing piece, openly disclosed |
 | `environment_conditional` | Depends on an external bridge not always present |
 | `research_only` | Heuristic, not ready for governance use |
+
+Framework-declared policy surfaces are emitted under `framework_declared`. They are labeled with `basis = "framework_declared"` and do not contribute to the review score.
+
+The current physics adapter stores its review policy as packaged JSON data under `src/spar_domain_physics/policies/physics_review_policy.v1.json`, so analytical anchors and admissibility thresholds can evolve without being hidden inside scoring code.
 
 Contextual physics checks:
 

@@ -8,6 +8,7 @@ from spar_framework.engine import ReviewRuntime
 
 from .layer_a import build_layer_a
 from .layer_b import build_layer_b
+from .layer_c_advanced import build_framework_declared_checks
 from .layer_c import build_layer_c
 from .registry_seed import physics_registry_snapshots
 from .slop_rules import slop_check
@@ -18,6 +19,7 @@ def get_review_runtime() -> ReviewRuntime:
         build_layer_a=build_layer_a,
         build_layer_b=build_layer_b,
         build_layer_c=build_layer_c,
+        build_framework_declared=build_framework_declared_checks,
         build_model_registry_snapshot=lambda: physics_registry_snapshots()["model_registry_snapshot"],
         build_gap_registry_snapshot=lambda: physics_registry_snapshots()["gap_registry_snapshot"],
         slop_check=slop_check,

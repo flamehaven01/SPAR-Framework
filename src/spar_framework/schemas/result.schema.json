@@ -11,7 +11,8 @@
     "verdict",
     "layer_a",
     "layer_b",
-    "layer_c"
+    "layer_c",
+    "framework_declared"
   ],
   "properties": {
     "subject": {
@@ -71,6 +72,13 @@
       "items": {
         "$ref": "#/$defs/checkResult"
       }
+    },
+    "framework_declared": {
+      "type": "array",
+      "description": "Adapter-declared maturity or limitation surfaces that are not scored as subject-derived findings.",
+      "items": {
+        "$ref": "#/$defs/checkResult"
+      }
     }
   },
   "$defs": {
@@ -81,7 +89,8 @@
         "label",
         "status",
         "detail",
-        "ref"
+        "ref",
+        "basis"
       ],
       "properties": {
         "check_id": {
@@ -98,6 +107,13 @@
         },
         "ref": {
           "type": "string"
+        },
+        "basis": {
+          "type": "string",
+          "enum": [
+            "subject_derived",
+            "framework_declared"
+          ]
         }
       }
     }

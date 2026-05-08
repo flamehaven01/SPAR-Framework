@@ -25,6 +25,7 @@ class ReviewRuntime:
     build_layer_a: LayerBuilder
     build_layer_b: LayerBuilder
     build_layer_c: LayerBuilder
+    build_framework_declared: LayerBuilder | None = None
     build_model_registry_snapshot: Callable[[], dict[str, Any] | None] | None = None
     build_gap_registry_snapshot: Callable[[], dict[str, Any] | None] | None = None
     slop_check: SlopChecker | None = None
@@ -60,6 +61,17 @@ def run_review(
     layer_c = runtime.build_layer_c(
         subject=subject, source=source, gate=gate, params=params, context=context
     )
+    framework_declared = (
+        runtime.build_framework_declared(
+            subject=subject,
+            source=source,
+            gate=gate,
+            params=params,
+            context=context,
+        )
+        if runtime.build_framework_declared is not None
+        else []
+    )
 
     slop_penalty = 0
     slop_hits: list[str] = []
@@ -83,6 +95,7 @@ def run_review(
         layer_a=layer_a,
         layer_b=layer_b,
         layer_c=layer_c,
+        framework_declared=framework_declared,
         score=core_review["score"],
         grade=core_review["grade"],
         verdict=core_review["verdict"],

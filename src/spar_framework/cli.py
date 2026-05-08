@@ -167,7 +167,7 @@ def _add_review_args(parser: argparse.ArgumentParser) -> None:
 
 def _run_review(args: argparse.Namespace) -> int:
     runtime = _get_runtime(args.adapter)
-    subject = json.loads(Path(args.subject_json).read_text(encoding="utf-8"))
+    subject = _load_subject_payload(args.subject_json)
     report_text = args.report_text
     if args.report_file:
         report_text = Path(args.report_file).read_text(encoding="utf-8")
@@ -197,6 +197,7 @@ def _run_review(args: argparse.Namespace) -> int:
 
 def _run_explain(args: argparse.Namespace) -> int:
     payload = json.loads(Path(args.review_json).read_text(encoding="utf-8"))
+    context_summary = payload.get("context_summary") or {}
     summary = {
         "verdict": payload.get("verdict"),
         "score": payload.get("score"),
@@ -214,7 +215,12 @@ def _run_explain(args: argparse.Namespace) -> int:
             for item in payload.get("layer_c", [])
             if item.get("status") not in {"PASS", "CONSISTENT", "GENUINE"}
         ],
-        "context_sources": payload.get("context_summary", {}).get("sources", []),
+        "framework_declared_flags": [
+            item["check_id"]
+            for item in payload.get("framework_declared", [])
+            if item.get("status") not in {"DECLARED_CLOSED"}
+        ],
+        "context_sources": context_summary.get("sources", []),
     }
 
     if args.format == "text":
@@ -225,6 +231,7 @@ def _run_explain(args: argparse.Namespace) -> int:
             f"layer_a_anomalies: {summary['layer_a_anomalies']}",
             f"layer_b_flags: {', '.join(summary['layer_b_flags']) or 'none'}",
             f"layer_c_flags: {', '.join(summary['layer_c_flags']) or 'none'}",
+            f"framework_declared_flags: {', '.join(summary['framework_declared_flags']) or 'none'}",
             f"context_sources: {', '.join(summary['context_sources']) or 'none'}",
         ]
         print("\n".join(lines))
@@ -296,6 +303,15 @@ def _example_subject(source: str) -> dict[str, Any]:
         },
     }
     return examples.get(source, {"beta_G_norm": 0.0})
+
+
+def _load_subject_payload(path: str) -> dict[str, Any]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if isinstance(payload, dict) and isinstance(payload.get("subject"), dict):
+        return payload["subject"]
+    if isinstance(payload, dict):
+        return payload
+    raise ValueError("Subject JSON must be an object or an example wrapper with a 'subject' object.")
 
 
 def _get_runtime(adapter: str):

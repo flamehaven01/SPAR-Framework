@@ -15,6 +15,7 @@ class CheckResult:
     status: STATUS
     detail: str
     ref: str = ""
+    basis: str = "subject_derived"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -23,6 +24,7 @@ class CheckResult:
             "status": self.status,
             "detail": self.detail,
             "ref": self.ref,
+            "basis": self.basis,
         }
 
 
@@ -33,6 +35,7 @@ class ReviewResult:
     layer_a: list[CheckResult] = field(default_factory=list)
     layer_b: list[CheckResult] = field(default_factory=list)
     layer_c: list[CheckResult] = field(default_factory=list)
+    framework_declared: list[CheckResult] = field(default_factory=list)
     score: int = 100
     grade: str = "PASS"
     verdict: str = "ACCEPT"
@@ -55,4 +58,5 @@ class ReviewResult:
             "layer_a": [item.to_dict() for item in self.layer_a],
             "layer_b": [item.to_dict() for item in self.layer_b],
             "layer_c": [item.to_dict() for item in self.layer_c],
+            "framework_declared": [item.to_dict() for item in self.framework_declared],
         }

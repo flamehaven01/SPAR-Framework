@@ -47,24 +47,4 @@ def build_layer_c_foundations(*, subject: dict[str, Any], source: str) -> list[C
         )
     )
 
-    omega = subject.get("sidrce_omega")
-    if omega is not None:
-        results.append(
-            CheckResult(
-                "C4",
-                "SIDRCE Omega derivation",
-                "GAP",
-                f"Omega={float(omega):.4f}. {PHYSICS_ARCHITECTURE_GAPS['C4']} [{format_gap_state('C4')}]",
-            )
-        )
-    else:
-        results.append(
-            CheckResult(
-                "C4",
-                "SIDRCE Omega derivation",
-                "CANNOT_DETERMINE",
-                "sidrce_omega not in output",
-            )
-        )
-
     return results

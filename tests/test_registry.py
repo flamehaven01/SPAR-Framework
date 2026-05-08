@@ -39,6 +39,7 @@ def test_run_review_emits_registry_snapshots():
     assert payload["verdict"] == "ACCEPT"
     assert payload["model_registry_snapshot"]["total_models"] == 1
     assert payload["gap_registry_snapshot"]["total_gaps"] == 1
+    assert payload["framework_declared"] == []
 
 
 def test_run_review_emits_safe_context_summary():
@@ -384,10 +385,11 @@ def test_physics_runtime_emits_slop_hits_and_registry_snapshots():
     assert "groundbreaking" in payload["slop_hits"]
 
 
-def test_physics_layer_c_marks_closed_gap_as_genuine():
+def test_physics_framework_declared_surfaces_are_separate_from_layer_c():
     from spar_domain_physics.layer_c import build_layer_c
+    from spar_domain_physics.layer_c_advanced import build_framework_declared_checks
 
-    checks = build_layer_c(
+    layer_c = build_layer_c(
         subject={
             "sidrce_omega": 0.7,
             "ricci_norm": 0.001,
@@ -398,9 +400,19 @@ def test_physics_layer_c_marks_closed_gap_as_genuine():
         gate="PASS",
         params={},
     )
+    framework_declared = build_framework_declared_checks(
+        subject={
+            "sidrce_omega": 0.7,
+            "ricci_norm": 0.001,
+            "partial_G": {"dummy": 1},
+            "F2": {"dummy": 1},
+        }
+    )
 
-    c7 = next(check for check in checks if check.check_id == "C7")
-    assert c7.status == "GENUINE"
+    assert all(check.check_id != "C7" for check in layer_c)
+    c7 = next(check for check in framework_declared if check.check_id == "C7")
+    assert c7.status == "DECLARED_CLOSED"
+    assert c7.basis == "framework_declared"
 
 
 def test_physics_layer_c_flags_missing_omega_as_cannot_determine():
@@ -413,8 +425,6 @@ def test_physics_layer_c_flags_missing_omega_as_cannot_determine():
         params={},
     )
 
-    c4 = next(check for check in checks if check.check_id == "C4")
-    assert c4.status == "CANNOT_DETERMINE"
     c9 = next(check for check in checks if check.check_id == "C9")
     assert c9.status == "CANNOT_CHECK"
     c10 = next(check for check in checks if check.check_id == "C10")
@@ -524,7 +534,7 @@ def test_public_leda_payload_is_not_ingested_by_physics_layers():
     assert c9.status == "CANNOT_CHECK"
 
 
-def test_physics_runtime_layer_c_affects_score():
+def test_physics_runtime_framework_declared_does_not_affect_score():
     from spar_domain_physics.runtime import get_review_runtime
     from spar_framework.engine import run_review
 
@@ -545,8 +555,9 @@ def test_physics_runtime_layer_c_affects_score():
 
     payload = result.to_dict()
 
-    assert payload["score"] < 100
-    assert any(check["check_id"] == "C4" for check in payload["layer_c"])
+    assert payload["score"] == 93
+    assert any(check["check_id"] == "C4" for check in payload["framework_declared"])
+    assert all(check["check_id"] != "C4" for check in payload["layer_c"])
 
 
 def test_spar_context_review_cli_writes_json(tmp_path):
@@ -746,8 +757,8 @@ def test_spar_review_subcommand_writes_json(tmp_path):
 
     assert rc == 0
     payload = json.loads(output_path.read_text(encoding="utf-8"))
-    assert payload["verdict"] == "MINOR_REVISION"
-    assert payload["score"] >= 70
+    assert payload["verdict"] == "ACCEPT"
+    assert payload["score"] == 93
     assert payload["context_summary"] is None
 
 
@@ -765,6 +776,7 @@ def test_spar_explain_subcommand_emits_summary(tmp_path, capsys):
                 "layer_a": [{"check_id": "A1", "status": "PASS"}],
                 "layer_b": [{"check_id": "B5", "status": "WARN"}],
                 "layer_c": [{"check_id": "C10", "status": "APPROXIMATION"}],
+                "framework_declared": [{"check_id": "C6", "status": "DECLARED_HEURISTIC"}],
             }
         ),
         encoding="utf-8",
@@ -776,7 +788,35 @@ def test_spar_explain_subcommand_emits_summary(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "verdict: MINOR_REVISION" in out
     assert "layer_b_flags: B5" in out
+    assert "framework_declared_flags: C6" in out
     assert "context_sources: mica" in out
+
+
+def test_spar_explain_subcommand_handles_null_context_summary(tmp_path, capsys):
+    from spar_framework.cli import main
+
+    review_path = tmp_path / "review.json"
+    review_path.write_text(
+        json.dumps(
+            {
+                "verdict": "MINOR_REVISION",
+                "score": 78,
+                "grade": "WARN",
+                "context_summary": None,
+                "layer_a": [{"check_id": "A1", "status": "PASS"}],
+                "layer_b": [],
+                "layer_c": [],
+                "framework_declared": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    rc = main(["explain", "--review-json", str(review_path), "--format", "text"])
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "context_sources: none" in out
 
 
 def test_spar_discover_subcommand_reports_profiles(tmp_path, capsys):
@@ -825,6 +865,35 @@ def test_spar_example_subcommand_writes_example(tmp_path):
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert payload["source"] == "flat"
     assert payload["subject"]["beta_G_norm"] == 0.0
+
+
+def test_spar_review_accepts_wrapped_example_payload(tmp_path):
+    from spar_framework.cli import main
+
+    example_path = tmp_path / "example.json"
+    review_path = tmp_path / "review.json"
+    rc = main(["example", "--source", "flat", "--output-json", str(example_path)])
+    assert rc == 0
+
+    rc = main(
+        [
+            "review",
+            "--subject-json",
+            str(example_path),
+            "--source",
+            "flat minkowski",
+            "--gate",
+            "PASS",
+            "--output-json",
+            str(review_path),
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(review_path.read_text(encoding="utf-8"))
+    assert payload["verdict"] == "ACCEPT"
+    assert payload["score"] == 93
+    assert any(check["check_id"] == "C7" for check in payload["framework_declared"])
 
 
 def test_spar_unknown_subcommand_returns_structured_error(capsys):
