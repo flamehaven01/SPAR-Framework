@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-09
+
+### Benchmark harness and comparison surface
+
+**`src/spar_framework/harness.py`** (new):
+- `BatchSummary` dataclass: `adapter`, `count`, `verdicts`, `mean_claim_drift`, `mean_coverage_rate`, `cannot_check_rate`, `framework_declared_rate`, `top_flags`. `.to_dict()` rounds floats to 4 decimal places.
+- `run_batch(runtime, adapter, subject_paths, ...)` — runs review on each subject file, optionally writes individual review JSONs to `reports_dir`, returns `BatchSummary`. Creates `reports_dir` if needed.
+- `_compute_summary(adapter, results)` — aggregates verdict distribution, per-subject CANNOT_CHECK rate, framework_declared rate, mean claim_drift/coverage_rate, top 5 non-passing flag IDs.
+- `compare_reviews(review_paths)` — extracts verdict/score/claim_drift/coverage_rate/flags from each review JSON for side-by-side comparison.
+
+**`src/spar_framework/report.py`** (new):
+- `batch_summary_to_markdown(summary)` — renders BatchSummary as a Markdown document with verdict table and metrics section.
+- `compare_reviews_to_markdown(comparisons)` — renders comparison list as a Markdown table.
+
+### CLI additions
+
+- `spar batch --adapter ADAPTER --subjects DIR [--reports DIR] [--output-json PATH] [--output-md PATH]` — batch review over a directory of subject JSON files; emits summary JSON to stdout.
+- `spar compare review1.json review2.json ... [--output-json PATH] [--output-md PATH]` — side-by-side comparison of review files.
+- `SUBCOMMANDS` extended with `batch` and `compare`.
+
+### Validation
+
+- Added `tests/test_harness.py` with 17 tests covering:
+  - `run_batch` count, verdict distribution, metric ranges, individual report writing
+  - Empty subject list returns zero-count summary
+  - Math adapter batch run
+  - `compare_reviews` entry count, flag extraction for ANOMALY subjects
+  - `BatchSummary.to_dict` has all required fields
+  - Markdown rendering for batch summary and comparison table
+  - CLI e2e: `spar batch` writes JSON + Markdown + individual reports; empty dir returns error
+  - CLI e2e: `spar compare` writes JSON + Markdown
+- Total: **125 passing tests** (52 physics + 26 ML + 30 math + 17 harness)
+
 ## [0.4.1] - 2026-05-09
 
 ### Math adapter policy wiring hardening

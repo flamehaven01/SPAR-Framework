@@ -17,7 +17,7 @@ EXIT_REVIEW_FAILURE = 1
 EXIT_INPUT_ERROR = 2
 EXIT_SYSTEM_ERROR = 3
 
-SUBCOMMANDS = {"review", "explain", "discover", "schema", "example"}
+SUBCOMMANDS = {"review", "explain", "discover", "schema", "example", "batch", "compare"}
 
 # (package, subdir, filename) for adapter-specific schema targets.
 # Entries here take precedence over the framework-level schema_loader.
@@ -115,6 +115,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional path to write the example JSON payload",
     )
 
+    batch = subparsers.add_parser(
+        "batch",
+        help="Run SPAR review on a directory of subject files and emit a batch summary.",
+    )
+    batch.add_argument(
+        "--adapter",
+        default="physics",
+        choices=_ADAPTER_CHOICES,
+        help="Domain adapter to use for all subjects",
+    )
+    batch.add_argument("--subjects", required=True, help="Directory containing subject JSON files")
+    batch.add_argument("--reports", help="Optional directory to write individual review JSONs")
+    batch.add_argument("--report-text", default="", help="Shared report text for all subjects")
+    batch.add_argument("--source", default="", help="Shared source value for all subjects")
+    batch.add_argument("--gate", default="", help="Shared gate value for all subjects")
+    batch.add_argument("--output-json", help="Optional path to write batch summary JSON")
+    batch.add_argument("--output-md", help="Optional path to write batch summary Markdown")
+
+    compare = subparsers.add_parser(
+        "compare",
+        help="Compare multiple SPAR review JSON files and emit a side-by-side summary.",
+    )
+    compare.add_argument("review_jsons", nargs="+", help="Paths to SPAR review JSON files")
+    compare.add_argument("--output-json", help="Optional path to write comparison JSON")
+    compare.add_argument("--output-md", help="Optional path to write comparison Markdown")
+
     return parser
 
 
@@ -153,6 +179,10 @@ def main(argv: list[str] | None = None) -> int:
             return _run_schema(args)
         if args.command == "example":
             return _run_example(args)
+        if args.command == "batch":
+            return _run_batch(args)
+        if args.command == "compare":
+            return _run_compare(args)
         return _emit_error(
             EXIT_INPUT_ERROR,
             "unknown_command",
@@ -457,6 +487,65 @@ def _get_runtime(adapter: str):
         from spar_domain_math.runtime import get_review_runtime as get_math_runtime
         return get_math_runtime()
     raise ValueError(f"Unsupported adapter: {adapter}")
+
+
+def _run_batch(args: argparse.Namespace) -> int:
+    from .harness import run_batch
+
+    subjects_dir = Path(args.subjects)
+    if not subjects_dir.is_dir():
+        return _emit_error(EXIT_INPUT_ERROR, "input_error",
+                           f"--subjects must be a directory: {subjects_dir}")
+
+    subject_paths = sorted(subjects_dir.glob("*.json"))
+    if not subject_paths:
+        return _emit_error(EXIT_INPUT_ERROR, "input_error",
+                           f"No JSON files found in {subjects_dir}")
+
+    reports_dir = None
+    if args.reports:
+        reports_dir = Path(args.reports)
+        reports_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = run_batch(
+        runtime=_get_runtime(args.adapter),
+        adapter=args.adapter,
+        subject_paths=subject_paths,
+        report_text=args.report_text,
+        source=args.source,
+        gate=args.gate,
+        reports_dir=reports_dir,
+    )
+
+    encoded = json.dumps(summary.to_dict(), indent=2)
+    if args.output_json:
+        Path(args.output_json).write_text(encoded, encoding="utf-8")
+    print(encoded)
+
+    if args.output_md:
+        from .report import batch_summary_to_markdown
+        Path(args.output_md).write_text(batch_summary_to_markdown(summary), encoding="utf-8")
+
+    return EXIT_OK
+
+
+def _run_compare(args: argparse.Namespace) -> int:
+    from .harness import compare_reviews
+
+    review_paths = [Path(p) for p in args.review_jsons]
+    comparisons = compare_reviews(review_paths)
+
+    payload = {"compared": len(comparisons), "reviews": comparisons}
+    encoded = json.dumps(payload, indent=2)
+    if args.output_json:
+        Path(args.output_json).write_text(encoded, encoding="utf-8")
+    print(encoded)
+
+    if args.output_md:
+        from .report import compare_reviews_to_markdown
+        Path(args.output_md).write_text(compare_reviews_to_markdown(comparisons), encoding="utf-8")
+
+    return EXIT_OK
 
 
 def _emit_error(code: int, error: str, detail: str) -> int:
