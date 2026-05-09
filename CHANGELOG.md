@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-09
+
+### Core policy hardening
+
+- Externalized `slop_penalty_per_hit` (10) into `review_policy.v1.json` under `scoring`. `slop_rules.slop_check()` now reads the multiplier from `default_policy` instead of a hardcoded literal.
+- Externalized `coverage_rate_precision` (4) into `review_policy.v1.json` under `scoring`. `compute_coverage_rate()` now rounds to the policy-defined decimal place count.
+- Added `slop_severity_weights` table (`critical`/`high`/`medium`/`low`) to `review_policy.v1.json` as a reserved structure aligned with the AI-SLOP-Detector v3.7.x tiered model. Currently unused in scoring logic; marks the evolution path from flat-multiplier to per-severity weighted slop scoring.
+- Added `slop_penalty_per_hit`, `coverage_rate_precision`, and `slop_severity_weights` fields to the `ReviewPolicy` dataclass.
+- `compute_coverage_rate()` now accepts an optional `policy` parameter (default: `default_policy`).
+
+### Validation
+
+- Added 2 regression tests covering:
+  - `slop_penalty_per_hit` loaded from JSON and propagated through `slop_check()`
+  - `coverage_rate_precision` loaded from JSON and applied in `compute_coverage_rate()`
+- Total: **48 passing tests**
+
 ## [0.2.0] - 2026-05-09
 
 ### Framework core hardening

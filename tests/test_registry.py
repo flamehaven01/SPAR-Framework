@@ -1071,3 +1071,36 @@ def test_model_spec_without_external_ref_omits_field():
 
     snapshot = model_registry_snapshot([ModelSpec("m1", "M1", "Production", "test scope")])
     assert "external_ref" not in snapshot["models"][0]
+
+
+# ---------------------------------------------------------------------------
+# v0.2.1 policy externalization regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_slop_penalty_per_hit_loaded_from_policy():
+    from spar_domain_physics.slop_rules import slop_check
+    from spar_framework.scoring import default_policy
+
+    assert default_policy.slop_penalty_per_hit == 10
+    penalty, hits = slop_check("A groundbreaking result.")
+    assert hits == ["groundbreaking"]
+    assert penalty == default_policy.slop_penalty_per_hit * len(hits)
+    assert penalty == 10
+
+
+def test_coverage_rate_precision_loaded_from_policy():
+    from spar_framework.result_types import CheckResult
+    from spar_framework.scoring import compute_coverage_rate, default_policy
+
+    assert default_policy.coverage_rate_precision == 4
+
+    layer = [
+        CheckResult("A1", "anchor", "PASS", "ok"),
+        CheckResult("A2", "anchor", "CANNOT_CHECK", "no data"),
+        CheckResult("A3", "anchor", "WARN", "warn"),
+    ]
+    rate = compute_coverage_rate(layer, [], [])
+    assert rate == round(2 / 3, 4)
+    decimal_places = len(str(rate).split(".")[-1]) if "." in str(rate) else 0
+    assert decimal_places <= default_policy.coverage_rate_precision

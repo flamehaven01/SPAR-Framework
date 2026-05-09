@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from spar_framework.scoring import default_policy
+
+# Flat-severity phrases. Evolution path: assign per-phrase severity tiers
+# (critical/high/medium/low) and use policy.slop_severity_weights for weighted
+# sum scoring -- matching the AI-SLOP-Detector v3.7.x tiered model.
 SLOP_PHRASES = [
     "groundbreaking",
     "revolutionary",
@@ -22,7 +27,6 @@ SLOP_PHRASES = [
 
 def slop_check(text: str) -> tuple[int, list[str]]:
     """Return a deterministic penalty and matched phrases."""
-
     lowered = text.lower()
     hits = [phrase for phrase in SLOP_PHRASES if phrase in lowered]
-    return len(hits) * 10, hits
+    return len(hits) * default_policy.slop_penalty_per_hit, hits

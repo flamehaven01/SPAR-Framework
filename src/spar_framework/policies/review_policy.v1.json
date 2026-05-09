@@ -8,6 +8,14 @@
       "GAP": -5,
       "WARN": -3,
       "APPROXIMATION": -2
+    },
+    "slop_penalty_per_hit": 10,
+    "coverage_rate_precision": 4,
+    "slop_severity_weights": {
+      "critical": 10,
+      "high": 5,
+      "medium": 2,
+      "low": 1
     }
   },
   "verdict": {

@@ -21,6 +21,9 @@ def _load_review_policy() -> dict[str, Any]:
 class ReviewPolicy:
     score_table: dict[str, int]
     base_score: int = 100
+    slop_penalty_per_hit: int = 10
+    coverage_rate_precision: int = 4
+    slop_severity_weights: dict[str, int] | None = None
     accept_threshold: int = 85
     minor_revision_threshold: int = 70
     major_revision_threshold: int = 50
@@ -44,6 +47,9 @@ def _build_default_policy() -> ReviewPolicy:
     return ReviewPolicy(
         score_table=data["scoring"]["penalties"],
         base_score=data["scoring"]["base_score"],
+        slop_penalty_per_hit=data["scoring"]["slop_penalty_per_hit"],
+        coverage_rate_precision=data["scoring"]["coverage_rate_precision"],
+        slop_severity_weights=data["scoring"].get("slop_severity_weights"),
         accept_threshold=data["verdict"]["accept_threshold"],
         minor_revision_threshold=data["verdict"]["minor_revision_threshold"],
         major_revision_threshold=data["verdict"]["major_revision_threshold"],
@@ -118,6 +124,7 @@ def compute_coverage_rate(
     layer_a: list["CheckResult"],
     layer_b: list["CheckResult"],
     layer_c: list["CheckResult"],
+    policy: ReviewPolicy = default_policy,
 ) -> float:
     """Fraction of subject checks that returned a determinate result.
 
@@ -128,4 +135,4 @@ def compute_coverage_rate(
     if not all_checks:
         return 0.0
     covered = sum(1 for check in all_checks if check.status != "CANNOT_CHECK")
-    return round(covered / len(all_checks), 4)
+    return round(covered / len(all_checks), policy.coverage_rate_precision)
