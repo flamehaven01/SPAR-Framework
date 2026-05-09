@@ -6,10 +6,22 @@ from typing import Any
 
 from spar_framework.result_types import CheckResult
 
+from .policy_loader import get_layer_c_config
+
+_LAYER_C_CONFIG = get_layer_c_config()
+_PROOF_STATUS_VALUES: frozenset[str] = frozenset(_LAYER_C_CONFIG["proof_status_values"])
+
 
 def check_c1_proof_maturity(subject: dict[str, Any]) -> CheckResult:
     """Proof completeness maturity: complete=GENUINE, sketch=APPROXIMATION, absent=GAP."""
     proof_status = subject.get("proof_surface", {}).get("proof_status", "absent")
+
+    if proof_status not in _PROOF_STATUS_VALUES:
+        return CheckResult(
+            "C1", "Proof maturity", "CANNOT_CHECK",
+            f"proof_status='{proof_status}' is not a recognized value. "
+            f"Valid values: {sorted(_PROOF_STATUS_VALUES)}.",
+        )
 
     if proof_status == "complete":
         return CheckResult("C1", "Proof maturity", "GENUINE", "proof_status=complete.")

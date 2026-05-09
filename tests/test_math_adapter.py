@@ -169,6 +169,48 @@ def test_no_formal_verification_phrase_is_pass():
     assert result.check_id == "B4"
 
 
+def test_generality_language_without_profile_warns():
+    from spar_domain_math.layer_b import check_b2_generality_language
+
+    subject = _base_subject(
+        claim_profile={"proof_claimed": False, "generality_claimed": False, "novelty_claimed": False}
+    )
+    result = check_b2_generality_language(subject, "This result holds in general for all compact spaces.")
+    assert result.status == "WARN"
+    assert result.check_id == "B2"
+
+
+def test_generality_language_matching_profile_passes():
+    from spar_domain_math.layer_b import check_b2_generality_language
+
+    subject = _base_subject(
+        claim_profile={"proof_claimed": True, "generality_claimed": True, "novelty_claimed": False}
+    )
+    result = check_b2_generality_language(subject, "This result holds in general.")
+    assert result.status == "PASS"
+
+
+def test_novelty_language_without_profile_warns():
+    from spar_domain_math.layer_b import check_b3_novelty_language
+
+    subject = _base_subject(
+        claim_profile={"proof_claimed": True, "generality_claimed": False, "novelty_claimed": False}
+    )
+    result = check_b3_novelty_language(subject, "This is the first proof of this conjecture.")
+    assert result.status == "WARN"
+    assert result.check_id == "B3"
+
+
+def test_novelty_language_matching_profile_passes():
+    from spar_domain_math.layer_b import check_b3_novelty_language
+
+    subject = _base_subject(
+        claim_profile={"proof_claimed": True, "generality_claimed": False, "novelty_claimed": True}
+    )
+    result = check_b3_novelty_language(subject, "This is the first proof of this result.")
+    assert result.status == "PASS"
+
+
 # ---------------------------------------------------------------------------
 # Layer C
 # ---------------------------------------------------------------------------
@@ -248,6 +290,27 @@ def test_math_layer_a_rules_from_policy():
     assert rules["proof_requires_evidence"] is True
     assert rules["generality_requires_assumptions"] is True
     assert rules["novelty_uncited_status"] == "WARN"
+
+
+def test_novelty_uncited_status_is_consumed_by_runtime():
+    from spar_domain_math.layer_a import check_a3_novelty
+
+    subject = _base_subject(
+        claim_profile={"proof_claimed": False, "generality_claimed": False, "novelty_claimed": True},
+        proof_surface={"proof_status": "complete", "assumptions_explicit": True, "prior_art_cited": False},
+    )
+    result = check_a3_novelty(subject)
+    # policy declares novelty_uncited_status="WARN"; verify runtime emits that status
+    assert result.status == "WARN"
+
+
+def test_proof_status_values_guard_unknown_status():
+    from spar_domain_math.layer_c import check_c1_proof_maturity
+
+    subject = _base_subject(proof_surface={"proof_status": "partial",
+                                           "assumptions_explicit": True, "prior_art_cited": True})
+    result = check_c1_proof_maturity(subject)
+    assert result.status == "CANNOT_CHECK"
 
 
 # ---------------------------------------------------------------------------

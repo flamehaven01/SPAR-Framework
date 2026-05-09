@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-09
+
+### Math adapter policy wiring hardening
+
+**`layer_a.py` — `novelty_uncited_status` consumed:**
+- `check_a3_novelty()` now reads `_RULES.get("novelty_uncited_status", "WARN")` instead of hardcoding the string `"WARN"`. Policy can now change the novelty uncited status without a code change.
+
+**`layer_c.py` — `proof_status_values` guard:**
+- Loads `_PROOF_STATUS_VALUES = frozenset(_LAYER_C_CONFIG["proof_status_values"])` at import time.
+- `check_c1_proof_maturity()` now returns `CANNOT_CHECK` when `proof_status` is not in the recognized set, rather than silently falling through to the `absent` branch. Unknown values are now surfaced explicitly.
+
+### Validation
+
+- Added 8 regression tests:
+  - B2 generality language: phrase detected without profile → WARN; with profile → PASS
+  - B3 novelty language: phrase detected without profile → WARN; with profile → PASS
+  - `novelty_uncited_status` policy field is consumed: A3 runtime status matches policy declaration
+  - `proof_status_values` guard: unknown `proof_status` value → CANNOT_CHECK
+- Total: **108 passing tests** (52 physics + 26 ML + 30 math)
+
 ## [0.4.0] - 2026-05-09
 
 ### New adapter: spar_domain_math

@@ -69,8 +69,9 @@ def check_a3_novelty(subject: dict[str, Any]) -> CheckResult:
 
     prior_art_cited = subject.get("proof_surface", {}).get("prior_art_cited", False)
     if not prior_art_cited:
+        status = _RULES.get("novelty_uncited_status", "WARN")
         return CheckResult(
-            "A3", "Novelty claim evidence", "WARN",
+            "A3", "Novelty claim evidence", status,
             "novelty_claimed=true but prior_art_cited=false. Novelty claim lacks prior art context.",
         )
 

@@ -4,7 +4,7 @@
   "project": {
     "name": "spar-framework",
     "full_name": "SPAR Framework",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "status": "active",
     "purpose": "Standalone deterministic admissibility-review framework extracted from TOE",
     "canonical_statement": "SPAR Framework is a domain-agnostic admissibility-review kernel. It separates anchor checks, interpretation-scope checks, and maturity-state checks, while delegating domain-specific contracts to adapter packages.",
@@ -35,11 +35,11 @@
   "operation_meta": {
     "archive_id": "MICA-SPAR-FRAMEWORK-001",
     "mica_schema_version": "0.2.2",
-    "baseline_ref": "v0.4.0-2026-05-09",
+    "baseline_ref": "v0.4.1-2026-05-09",
     "objective": "Institutional memory for standalone SPAR framework extraction.",
     "operating_mode": "evolve",
     "current_state": "active",
-    "update_count": 12,
+    "update_count": 13,
     "last_updated": "2026-05-09",
     "session_count": 5,
     "invocation_notes": "Primary invocation via mica.yaml and README/start-here path.",
