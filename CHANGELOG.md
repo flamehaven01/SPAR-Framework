@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-05-09
+
+### Core hardening — adapter override readiness
+
+- Parameterized `slop_check(text, policy=default_policy)` in `slop_rules.py`. Adapters that need a domain-specific slop penalty multiplier can now bind a custom `ReviewPolicy` via `functools.partial` before passing the checker to `ReviewRuntime.slop_check`. The `SlopChecker = Callable[[str], tuple[int, list[str]]]` contract in `engine.py` is unchanged — callers use the default or bind via partial.
+- Imported `ReviewPolicy` into `slop_rules.py` alongside `default_policy` to support the explicit type annotation.
+
+### Validation
+
+- Added 2 regression tests covering:
+  - `slop_check` with a custom policy (`slop_penalty_per_hit=5`) returns the correct scaled penalty
+  - `functools.partial`-bound checker produces identical results to a direct call with the same policy
+- Total: **52 passing tests**
+
 ## [0.2.2] - 2026-05-09
 
 ### Physics adapter threshold hardening

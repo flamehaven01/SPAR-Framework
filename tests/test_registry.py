@@ -1134,3 +1134,34 @@ def test_brst_ricci_boundary_uses_policy_threshold():
     # between thresholds -> APPROXIMATION
     status_approx, _ = evaluate_brst_genuineness({"ricci_norm": 0.05}, source="flat minkowski")
     assert status_approx == "APPROXIMATION"
+
+
+# ---------------------------------------------------------------------------
+# v0.2.3 slop_check policy parameterization regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_slop_check_accepts_policy_override():
+    from dataclasses import replace
+
+    from spar_domain_physics.slop_rules import slop_check
+    from spar_framework.scoring import default_policy
+
+    custom_policy = replace(default_policy, slop_penalty_per_hit=5)
+
+    penalty_default, hits_default = slop_check("A groundbreaking result.")
+    penalty_custom, hits_custom = slop_check("A groundbreaking result.", policy=custom_policy)
+
+    assert hits_default == hits_custom == ["groundbreaking"]
+    assert penalty_default == 10
+    assert penalty_custom == 5
+
+
+def test_slop_check_partial_binding_matches_direct_call():
+    from functools import partial
+
+    from spar_domain_physics.slop_rules import slop_check
+    from spar_framework.scoring import default_policy
+
+    bound = partial(slop_check, policy=default_policy)
+    assert bound("A revolutionary claim.") == slop_check("A revolutionary claim.")
