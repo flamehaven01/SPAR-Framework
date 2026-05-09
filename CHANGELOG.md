@@ -2,6 +2,70 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-09
+
+### New adapter: spar_domain_math
+
+Third domain adapter. Covers proof claim drift for mathematical results. Scope is deliberately narrow: proof/generality/novelty 3-claim contract, proof evidence surface, statement boundary clarity. Extended surfaces (formal verification, cross-domain transfer) are declared via framework_declared.
+
+**Subject schema** (`src/spar_domain_math/schemas/math_subject.schema.json`):
+- `theorem_id`, `theorem_type` (`theorem|lemma|proposition|corollary|conjecture`), `domain`
+- `claim_profile`: `proof_claimed`, `generality_claimed`, `novelty_claimed`
+- `proof_surface`: `proof_status` (enum: `complete|sketch|absent`), `assumptions_explicit`, `prior_art_cited`
+
+**Layer A — proof contract checks:**
+- A1: Proof claim vs evidence surface (FAIL if absent; ANOMALY if conjecture + proof_claimed; CONSISTENT otherwise)
+- A2: Generality claim vs assumptions (GAP if no explicit assumptions)
+- A3: Novelty claim vs prior art (WARN if prior_art_cited=false — not GAP; novelty is inherently harder to verify)
+
+**Layer B — claim language vs subject profile:**
+- B1: Proof language in report_text vs `proof_claimed` (WARN if exceeds profile)
+- B2: Generality language vs `generality_claimed` (WARN if exceeds)
+- B3: Novelty language vs `novelty_claimed` (WARN if exceeds)
+- B4: Formal verification language detection (CANNOT_CHECK conditional — only fires on detected phrase)
+
+**Layer C — evidence maturity:**
+- C1: Proof completeness maturity (`complete`=GENUINE, `sketch`=APPROXIMATION, `absent`=GAP)
+- C2: Statement boundary clarity (`assumptions_explicit`=GENUINE, else GAP)
+
+**Framework-declared limitation surfaces (not scored):**
+- FD-MA1: Machine-checked formal verification not covered
+- FD-MA2: Cross-domain claim transfer not reviewed
+- FD-MA3: Conjecture status tracking partial
+
+**Policy file:** `src/spar_domain_math/policies/math_review_policy.v1.json`
+
+**Design decisions vs ML adapter:**
+- `proof_status` uses a 3-value enum (`complete|sketch|absent`) instead of two booleans — eliminates contradictory states
+- A3 novelty emits WARN (not GAP) because prior art absence is not conclusive evidence of novelty drift
+- `conjecture` is first-class in `theorem_type` and creates a structural ANOMALY when combined with `proof_claimed=true`
+
+### CLI generalization
+
+- `--adapter` now accepts `physics`, `ml`, and `math` in `spar review`, `spar discover`, and `spar example`
+- Adapter choices extracted to `_ADAPTER_CHOICES` list — adding future adapters is a single list entry
+- `spar example --adapter math --task topology` generates math subject templates
+- `spar example --adapter math --task combinatorics` available
+- `spar schema subject --adapter math` returns `math_subject.schema.json`
+- `_ADAPTER_SCHEMA_ROUTES` extended with `math/subject` entry
+
+### Validation
+
+- Added `tests/test_math_adapter.py` with 24 tests covering:
+  - All 3 Layer A claim drift cases (proof absent→FAIL, conjecture+proof→ANOMALY, novelty uncited→WARN)
+  - proof_status sketch→CONSISTENT (A1), APPROXIMATION (C1)
+  - Generality with/without assumptions (A2 CONSISTENT/GAP)
+  - Novelty with/without prior art (A3 CONSISTENT/WARN)
+  - B1 proof language without profile → WARN
+  - B4 formal verification phrase → CANNOT_CHECK; no phrase → PASS
+  - C1 all three proof_status states (GENUINE/APPROXIMATION/GAP)
+  - C2 assumptions present/absent (GENUINE/GAP)
+  - Framework-declared scope validation
+  - Registry snapshot counts (3 models, 3 gaps)
+  - Policy loader correctness (layer_a rules)
+  - CLI e2e: review, example, schema with --adapter math
+- Total: **102 passing tests** (52 physics + 26 ML + 24 math)
+
 ## [0.3.2] - 2026-05-09
 
 ### CLI adapter decoupling

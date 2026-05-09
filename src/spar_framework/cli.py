@@ -25,7 +25,12 @@ _ADAPTER_SCHEMA_ROUTES: dict[str, dict[str, tuple[str, str, str]]] = {
     "ml": {
         "subject": ("spar_domain_ml", "schemas", "ml_subject.schema.json"),
     },
+    "math": {
+        "subject": ("spar_domain_math", "schemas", "math_subject.schema.json"),
+    },
 }
+
+_ADAPTER_CHOICES = ["physics", "ml", "math"]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -61,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     discover.add_argument(
         "--adapter",
         default="physics",
-        choices=["physics", "ml"],
+        choices=_ADAPTER_CHOICES,
         help="Adapter to use for discovery",
     )
 
@@ -77,7 +82,7 @@ def build_parser() -> argparse.ArgumentParser:
     schema.add_argument(
         "--adapter",
         default="physics",
-        choices=["physics", "ml"],
+        choices=_ADAPTER_CHOICES,
         help="Adapter context for schema selection (default: physics)",
     )
     schema.add_argument(
@@ -92,7 +97,7 @@ def build_parser() -> argparse.ArgumentParser:
     example.add_argument(
         "--adapter",
         default="physics",
-        choices=["physics", "ml"],
+        choices=_ADAPTER_CHOICES,
         help="Adapter to generate example for",
     )
     example.add_argument(
@@ -180,7 +185,7 @@ def _add_review_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--adapter",
         default="physics",
-        choices=["physics", "ml"],
+        choices=_ADAPTER_CHOICES,
         help="Domain adapter to use for review",
     )
     parser.add_argument("--output-json", help="Path to write JSON review result")
@@ -296,6 +301,8 @@ def _run_example(args: argparse.Namespace) -> int:
     adapter = getattr(args, "adapter", "physics")
     if adapter == "ml":
         payload = {"task": args.task, "subject": _ml_example_subject(args.task)}
+    elif adapter == "math":
+        payload = {"task": args.task, "subject": _math_example_subject(args.task)}
     else:
         from spar_domain_physics.ground_truth_table import GROUND_TRUTH
         source = args.source
@@ -403,6 +410,42 @@ def _ml_example_subject(task: str) -> dict[str, Any]:
     return examples.get(task, examples["image_classification"])
 
 
+def _math_example_subject(task: str) -> dict[str, Any]:
+    examples: dict[str, dict[str, Any]] = {
+        "topology": {
+            "theorem_id": "thm-1",
+            "theorem_type": "theorem",
+            "domain": "topology",
+            "claim_profile": {
+                "proof_claimed": True,
+                "generality_claimed": True,
+                "novelty_claimed": False,
+            },
+            "proof_surface": {
+                "proof_status": "complete",
+                "assumptions_explicit": True,
+                "prior_art_cited": True,
+            },
+        },
+        "combinatorics": {
+            "theorem_id": "lemma-3",
+            "theorem_type": "lemma",
+            "domain": "combinatorics",
+            "claim_profile": {
+                "proof_claimed": True,
+                "generality_claimed": False,
+                "novelty_claimed": True,
+            },
+            "proof_surface": {
+                "proof_status": "sketch",
+                "assumptions_explicit": True,
+                "prior_art_cited": False,
+            },
+        },
+    }
+    return examples.get(task, examples["topology"])
+
+
 def _get_runtime(adapter: str):
     if adapter == "physics":
         from spar_domain_physics.runtime import get_review_runtime
@@ -410,6 +453,9 @@ def _get_runtime(adapter: str):
     if adapter == "ml":
         from spar_domain_ml.runtime import get_review_runtime as get_ml_runtime
         return get_ml_runtime()
+    if adapter == "math":
+        from spar_domain_math.runtime import get_review_runtime as get_math_runtime
+        return get_math_runtime()
     raise ValueError(f"Unsupported adapter: {adapter}")
 
 

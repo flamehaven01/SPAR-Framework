@@ -1,0 +1,48 @@
+{
+  "version": "math-review-policy-v1",
+  "layer_a": {
+    "proof_requires_evidence": true,
+    "generality_requires_assumptions": true,
+    "novelty_uncited_status": "WARN"
+  },
+  "layer_b": {
+    "proof_phrases": [
+      "we prove",
+      "proof.",
+      "proof:",
+      "qed",
+      "it follows that",
+      "we demonstrate",
+      "we show that",
+      "the proof is"
+    ],
+    "generality_phrases": [
+      "for all",
+      "in general",
+      "universally",
+      "arbitrary",
+      "for any",
+      "holds in general"
+    ],
+    "novelty_phrases": [
+      "first proof",
+      "novel result",
+      "new theorem",
+      "new characterization",
+      "we first show",
+      "previously unknown",
+      "for the first time"
+    ],
+    "formal_verification_phrases": [
+      "formally verified",
+      "machine-checked",
+      "lean proof",
+      "coq proof",
+      "isabelle proof",
+      "proof assistant"
+    ]
+  },
+  "layer_c": {
+    "proof_status_values": ["complete", "sketch", "absent"]
+  }
+}

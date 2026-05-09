@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/flamehaven01/SPAR-Framework/schemas/math_subject.schema.json",
+  "title": "SPAR Math Adapter Subject",
+  "description": "Structured subject payload for the spar_domain_math proof claim-drift adapter.",
+  "type": "object",
+  "required": [
+    "theorem_id",
+    "theorem_type",
+    "domain",
+    "claim_profile",
+    "proof_surface"
+  ],
+  "properties": {
+    "theorem_id": {
+      "type": "string",
+      "description": "Identifier for the theorem or result (e.g. thm-1, lemma-2)"
+    },
+    "theorem_type": {
+      "type": "string",
+      "enum": ["theorem", "lemma", "proposition", "corollary", "conjecture"],
+      "description": "Formal classification of the result"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Mathematical domain (e.g. topology, algebra, analysis, combinatorics)"
+    },
+    "claim_profile": {
+      "type": "object",
+      "required": ["proof_claimed", "generality_claimed", "novelty_claimed"],
+      "properties": {
+        "proof_claimed": {
+          "type": "boolean",
+          "description": "Author claims a complete or partial proof is provided"
+        },
+        "generality_claimed": {
+          "type": "boolean",
+          "description": "Author claims the result holds under general or broad conditions"
+        },
+        "novelty_claimed": {
+          "type": "boolean",
+          "description": "Author claims the result is new or original"
+        }
+      }
+    },
+    "proof_surface": {
+      "type": "object",
+      "required": ["proof_status", "assumptions_explicit", "prior_art_cited"],
+      "properties": {
+        "proof_status": {
+          "type": "string",
+          "enum": ["complete", "sketch", "absent"],
+          "description": "Evidence level of the proof: complete proof, proof sketch, or no proof present"
+        },
+        "assumptions_explicit": {
+          "type": "boolean",
+          "description": "Whether the boundary conditions and assumptions are explicitly stated"
+        },
+        "prior_art_cited": {
+          "type": "boolean",
+          "description": "Whether relevant prior work is cited"
+        }
+      }
+    }
+  }
+}
