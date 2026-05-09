@@ -16,6 +16,7 @@ class CheckResult:
     detail: str
     ref: str = ""
     basis: str = "subject_derived"
+    scope: str = "subject"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -25,6 +26,7 @@ class CheckResult:
             "detail": self.detail,
             "ref": self.ref,
             "basis": self.basis,
+            "scope": self.scope,
         }
 
 
@@ -39,6 +41,8 @@ class ReviewResult:
     score: int = 100
     grade: str = "PASS"
     verdict: str = "ACCEPT"
+    claim_drift: int = 0
+    coverage_rate: float = 0.0
     slop_hits: list[str] = field(default_factory=list)
     context_summary: dict[str, Any] | None = None
     model_registry_snapshot: dict[str, Any] | None = None
@@ -51,6 +55,8 @@ class ReviewResult:
             "score": self.score,
             "grade": self.grade,
             "verdict": self.verdict,
+            "claim_drift": self.claim_drift,
+            "coverage_rate": self.coverage_rate,
             "slop_hits": self.slop_hits,
             "context_summary": self.context_summary,
             "model_registry_snapshot": self.model_registry_snapshot,

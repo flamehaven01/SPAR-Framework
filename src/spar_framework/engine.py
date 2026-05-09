@@ -99,6 +99,8 @@ def run_review(
         score=core_review["score"],
         grade=core_review["grade"],
         verdict=core_review["verdict"],
+        claim_drift=core_review["claim_drift"],
+        coverage_rate=core_review["coverage_rate"],
         slop_hits=slop_hits,
         context_summary=summarize_review_context(
             memory_context=memory_context,

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .result_types import CheckResult
-from .scoring import compute_score, grade_from_score, journal_verdict
+from .scoring import compute_claim_drift, compute_coverage_rate, compute_score, grade_from_score, journal_verdict
 
 
 def build_core_review(
@@ -18,10 +18,14 @@ def build_core_review(
     score = compute_score(layer_a, layer_b, layer_c, slop_penalty)
     grade = grade_from_score(score)
     verdict = journal_verdict(score, layer_a)
+    claim_drift = compute_claim_drift(layer_a, layer_b, layer_c)
+    coverage_rate = compute_coverage_rate(layer_a, layer_b, layer_c)
     return {
         "score": score,
         "grade": grade,
         "verdict": verdict,
+        "claim_drift": claim_drift,
+        "coverage_rate": coverage_rate,
     }
 
 

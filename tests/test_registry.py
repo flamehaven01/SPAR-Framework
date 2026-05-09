@@ -926,3 +926,148 @@ def test_mica_archive_version_tracks_package_version():
 
     assert archive["project"]["version"] == __version__
     assert archive["operation_meta"]["baseline_ref"].startswith(f"v{__version__}-")
+
+
+# ---------------------------------------------------------------------------
+# v0.2.0 new-field regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_check_result_scope_defaults_to_subject():
+    from spar_framework.result_types import CheckResult
+
+    check = CheckResult("A1", "label", "PASS", "detail")
+    assert check.scope == "subject"
+    assert check.to_dict()["scope"] == "subject"
+
+
+def test_framework_declared_checks_have_adapter_limitation_scope():
+    from spar_domain_physics.layer_c_advanced import build_framework_declared_checks
+
+    checks = build_framework_declared_checks(subject={})
+    for check in checks:
+        assert check.scope == "adapter_limitation", f"{check.check_id} scope={check.scope!r}"
+        assert check.to_dict()["scope"] == "adapter_limitation"
+
+
+def test_review_result_exposes_claim_drift_and_coverage_rate():
+    from spar_framework.engine import ReviewRuntime, run_review
+    from spar_framework.result_types import CheckResult
+
+    runtime = ReviewRuntime(
+        build_layer_a=lambda **_: [CheckResult("A1", "anchor", "PASS", "ok")],
+        build_layer_b=lambda **_: [CheckResult("B1", "scope", "WARN", "warn")],
+        build_layer_c=lambda **_: [CheckResult("C1", "maturity", "GAP", "gap")],
+    )
+
+    result = run_review(runtime=runtime, subject="demo", source="unit", gate="PASS")
+    payload = result.to_dict()
+
+    assert "claim_drift" in payload
+    assert "coverage_rate" in payload
+    # WARN=-3, GAP=-5 => claim_drift=8; score=100-3-5=92
+    assert result.claim_drift == 8
+    assert result.score == 92
+
+
+def test_claim_drift_excludes_slop_penalty():
+    from spar_domain_physics.runtime import get_review_runtime
+    from spar_framework.engine import run_review
+
+    result_with_slop = run_review(
+        runtime=get_review_runtime(),
+        subject={
+            "beta_G_norm": 0.0,
+            "beta_B_norm": 0.0,
+            "beta_Phi_norm": 0.0,
+            "sidrce_omega": 1.0,
+            "eft_m_kk_gev": 1.0e16,
+            "ricci_norm": 0.02,
+        },
+        source="flat minkowski",
+        gate="PASS",
+        report_text="A groundbreaking result.",
+    )
+
+    result_clean = run_review(
+        runtime=get_review_runtime(),
+        subject={
+            "beta_G_norm": 0.0,
+            "beta_B_norm": 0.0,
+            "beta_Phi_norm": 0.0,
+            "sidrce_omega": 1.0,
+            "eft_m_kk_gev": 1.0e16,
+            "ricci_norm": 0.02,
+        },
+        source="flat minkowski",
+        gate="PASS",
+        report_text="Clean report.",
+    )
+
+    # B3 is a subject check that detects language slop -> raises claim_drift.
+    # slop_rules is a separate mechanism that raises slop_penalty only.
+    # Therefore: score_gap > drift_gap, and slop_hits is non-empty.
+    # Relation: score_gap == drift_gap + slop_penalty.
+    score_gap = result_clean.score - result_with_slop.score
+    drift_gap = result_with_slop.claim_drift - result_clean.claim_drift
+    assert result_with_slop.slop_hits, "slop_hits must be populated"
+    assert score_gap > drift_gap > 0
+
+
+def test_coverage_rate_excludes_cannot_check_and_framework_declared():
+    from spar_domain_physics.runtime import get_review_runtime
+    from spar_framework.engine import run_review
+
+    result = run_review(
+        runtime=get_review_runtime(),
+        subject={
+            "beta_G_norm": 0.0,
+            "beta_B_norm": 0.0,
+            "beta_Phi_norm": 0.0,
+            "sidrce_omega": 0.9,
+            "eft_m_kk_gev": 1.0e16,
+            "ricci_norm": 0.02,
+        },
+        source="flat minkowski",
+        gate="PASS",
+        report_text="Clean report.",
+    )
+
+    # framework_declared (C4-C8) must not be in denominator
+    fd_ids = {c.check_id for c in result.framework_declared}
+    assert "C4" in fd_ids
+
+    # coverage_rate < 1.0 because B4, B5, C9, C10 are CANNOT_CHECK
+    assert 0.0 < result.coverage_rate < 1.0
+    # score parity: score == 93 unchanged
+    assert result.score == 93
+
+
+def test_scoring_policy_loaded_from_json():
+    from spar_framework.scoring import default_policy
+
+    assert default_policy.score_table["ANOMALY"] == -15
+    assert default_policy.score_table["FAIL"] == -10
+    assert default_policy.score_table["GAP"] == -5
+    assert default_policy.score_table["WARN"] == -3
+    assert default_policy.score_table["APPROXIMATION"] == -2
+    assert default_policy.accept_threshold == 85
+    assert default_policy.minor_revision_threshold == 70
+    assert default_policy.major_revision_threshold == 50
+
+
+def test_model_spec_external_ref_appears_in_snapshot():
+    from spar_domain_physics.registry_seed import physics_model_registry_snapshot
+
+    snapshot = physics_model_registry_snapshot()
+    external_models = [m for m in snapshot["models"] if m.get("external_ref")]
+    assert len(external_models) == 4
+    model_ids = {m["model_id"] for m in external_models}
+    assert model_ids == {"beta_residual", "chi_squared_omega", "qgb", "rg_flow_linearized"}
+
+
+def test_model_spec_without_external_ref_omits_field():
+    from spar_framework.registry import ModelSpec, model_registry_snapshot
+
+    snapshot = model_registry_snapshot([ModelSpec("m1", "M1", "Production", "test scope")])
+    assert "external_ref" not in snapshot["models"][0]

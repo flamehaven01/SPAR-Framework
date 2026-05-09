@@ -12,6 +12,7 @@ PHYSICS_MODELS: list[ModelSpec] = [
         scope_note="Full beta^G, beta^B, beta^Phi path on the supported physics surface.",
         module_path="physics/beta_residual.py",
         group="core_physics_models",
+        external_ref=True,
     ),
     ModelSpec(
         model_id="chi_squared_omega",
@@ -20,6 +21,7 @@ PHYSICS_MODELS: list[ModelSpec] = [
         scope_note="Gaussian residual scoring with inverse interpretation.",
         module_path="governance/orchestrator.py",
         group="core_physics_models",
+        external_ref=True,
     ),
     ModelSpec(
         model_id="qgb",
@@ -28,6 +30,7 @@ PHYSICS_MODELS: list[ModelSpec] = [
         scope_note="Curvature-to-decoherence map with calibration-backed coupling.",
         module_path="physics/qgb.py",
         group="extended_physics_models",
+        external_ref=True,
     ),
     ModelSpec(
         model_id="rg_flow_linearized",
@@ -36,6 +39,7 @@ PHYSICS_MODELS: list[ModelSpec] = [
         scope_note="Dilaton-only path; full metric evolution is separate.",
         module_path="analysis/rg_flow.py",
         group="extended_physics_models",
+        external_ref=True,
     ),
 ]
 

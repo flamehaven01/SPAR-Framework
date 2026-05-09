@@ -1,0 +1,22 @@
+{
+  "version": "review-policy-v1",
+  "scoring": {
+    "base_score": 100,
+    "penalties": {
+      "ANOMALY": -15,
+      "FAIL": -10,
+      "GAP": -5,
+      "WARN": -3,
+      "APPROXIMATION": -2
+    }
+  },
+  "verdict": {
+    "accept_threshold": 85,
+    "minor_revision_threshold": 70,
+    "major_revision_threshold": 50,
+    "layer_a_anomaly_reject_count": 2
+  },
+  "grade": {
+    "pass_threshold": 70
+  }
+}

@@ -14,6 +14,7 @@ class ModelSpec:
     scope_note: str
     module_path: str = ""
     group: str = ""
+    external_ref: bool = False
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,8 @@ def model_registry_snapshot(models: list[ModelSpec]) -> dict[str, object]:
         }
         if model.module_path:
             item["module_path"] = model.module_path
+        if model.external_ref:
+            item["external_ref"] = True
         if model.group:
             item["group"] = model.group
             grouped.setdefault(model.group, []).append(item)

@@ -34,12 +34,12 @@ SPAR (Sovereign Physics Autonomous Review) is a deterministic framework for **cl
 
 **SPAR is not a physics-only framework. Physics is where we stress-tested it.**
 
-Recent correctness fixes tightened:
+v0.2.0 core hardening:
 
-- analytical constant single-source consistency
-- source matching for `ads` vs `linear_dilaton`
-- CLI type safety and packaged schema contract
-- separation of subject-derived findings from framework-declared adapter policy
+- `claim_drift` and `coverage_rate` added to every review result
+- `scope` field on `CheckResult` distinguishes subject checks from adapter limitation policy
+- Framework core scoring policy externalized to `policies/review_policy.v1.json`
+- `external_ref` flag on `ModelSpec` marks out-of-package implementation references
 
 ```text
 outputs can stay green  ->  while implementation state changes underneath
@@ -116,8 +116,11 @@ result = run_review(
 
 print(result.verdict)                                 # ACCEPT / MINOR_REVISION / REJECT
 print(result.score)                                   # 0-100 penalty-table score
+print(result.claim_drift)                             # structural penalty sum from subject checks
+print(result.coverage_rate)                           # fraction of checks returning determinate result
 print(result.model_registry_snapshot["total_models"]) # registry-backed maturity surface
 print(result.framework_declared[0].basis)             # framework_declared
+print(result.framework_declared[0].scope)             # adapter_limitation
 ```
 
 **Contextual workflow** with MICA and optional LEDA:
@@ -208,7 +211,7 @@ Contextual physics checks:
 
 ## Scoring
 
-SPAR uses an explicit penalty table. No hidden learned weights.
+SPAR uses an explicit penalty table. No hidden learned weights. Policy is loaded from `src/spar_framework/policies/review_policy.v1.json`.
 
 ```python
 SCORE_TABLE = {
@@ -230,6 +233,15 @@ SCORE_TABLE = {
 | `< 50` or `>= 2` Layer A anomalies | `REJECT` |
 
 Two or more Layer A anomalies trigger unconditional `REJECT` regardless of total score.
+
+**Review metrics**
+
+Every `ReviewResult` carries two additional metrics derived from subject checks (Layer A/B/C only; `framework_declared` excluded from both):
+
+| Metric | Definition |
+|---|---|
+| `claim_drift` | Sum of absolute penalty weights from subject checks; excludes `slop_penalty` |
+| `coverage_rate` | Fraction of subject checks returning a determinate result (not `CANNOT_CHECK`) |
 
 ## Where It Fits
 
@@ -372,14 +384,20 @@ src/
     context.py
     mica.py
     workflow.py
+    policies/
+      review_policy.v1.json     <- framework core scoring policy
+    schemas/
   spar_domain_physics/
     runtime.py
     layer_a.py
     layer_b.py
     layer_c.py
+    layer_c_advanced.py
     matcher.py
     ground_truth_table.py
     registry_seed.py
+    policies/
+      physics_review_policy.v1.json
 tests/
 docs/
 mica.yaml

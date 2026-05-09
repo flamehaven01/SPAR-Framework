@@ -40,6 +40,7 @@ def build_framework_declared_checks(
             "DECLARED_OPEN",
             f"{omega_detail}{PHYSICS_ARCHITECTURE_GAPS['C4']} [{format_gap_state('C4')}]",
             basis="framework_declared",
+            scope="adapter_limitation",
         ),
         CheckResult(
             "C5",
@@ -47,6 +48,7 @@ def build_framework_declared_checks(
             "DECLARED_PARTIAL",
             f"{PHYSICS_ARCHITECTURE_GAPS['C5']} Blind spots: {blind_spots} [{format_gap_state('C5')}]",
             basis="framework_declared",
+            scope="adapter_limitation",
         ),
         CheckResult(
             "C6",
@@ -54,6 +56,7 @@ def build_framework_declared_checks(
             "DECLARED_HEURISTIC",
             f"{PHYSICS_ARCHITECTURE_GAPS['C6']} [{format_gap_state('C6')}]",
             basis="framework_declared",
+            scope="adapter_limitation",
         ),
         CheckResult(
             "C7",
@@ -61,6 +64,7 @@ def build_framework_declared_checks(
             "DECLARED_CLOSED",
             f"{PHYSICS_ARCHITECTURE_GAPS['C7']} [{format_gap_state('C7')}]",
             basis="framework_declared",
+            scope="adapter_limitation",
         ),
         CheckResult(
             "C8",
@@ -68,5 +72,6 @@ def build_framework_declared_checks(
             "DECLARED_APPROXIMATION",
             f"{PHYSICS_ARCHITECTURE_GAPS['C8']} [{format_gap_state('C8')}]",
             basis="framework_declared",
+            scope="adapter_limitation",
         ),
     ]

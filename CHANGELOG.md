@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-09
+
+### Framework core hardening
+
+- Added `scope` field to `CheckResult` (default `"subject"`). Framework-declared adapter policy checks now carry `scope = "adapter_limitation"` so they are structurally distinct from subject-derived findings.
+- Added `claim_drift` and `coverage_rate` to `ReviewResult`:
+  - `claim_drift` — sum of absolute penalty weights from subject checks (Layer A/B/C); excludes `slop_penalty` and `framework_declared`
+  - `coverage_rate` — fraction of subject checks that returned a determinate result (not `CANNOT_CHECK`); `framework_declared` excluded from denominator
+- Added `external_ref: bool = False` to `ModelSpec`. When `True`, the `model_registry_snapshot` emits the flag so consumers can distinguish in-package modules from external implementation references. All four current physics models are marked `external_ref=True`.
+- Externalized the framework core scoring policy into `src/spar_framework/policies/review_policy.v1.json`. Previously, penalty weights and verdict thresholds were hardcoded in `scoring.py`; they are now loaded at runtime via `importlib.resources` and cached. The physics adapter retains its own `physics_review_policy.v1.json` for adapter-specific Layer A/B thresholds.
+- Added `compute_claim_drift()` and `compute_coverage_rate()` to `scoring.py`.
+- Added `build_registry_snapshots()` and updated `build_core_review()` in `runtime_context.py` to wire the new metrics through the engine.
+- Added `"policies/*.json"` to `spar_framework` package-data in `pyproject.toml`.
+
+### Physics adapter
+
+- Applied `scope = "adapter_limitation"` to all five `framework_declared` checks (C4-C8) in `layer_c_advanced.py`.
+- Applied `external_ref=True` to all four `PHYSICS_MODELS` entries in `registry_seed.py`.
+
+### Validation
+
+- Added 8 regression tests covering:
+  - `CheckResult.scope` default and serialization
+  - `framework_declared` checks carry `adapter_limitation` scope
+  - `claim_drift` and `coverage_rate` values on a full review run
+  - `claim_drift` excludes `slop_penalty` (score gap > drift gap > 0)
+  - `coverage_rate` excludes `CANNOT_CHECK` and `framework_declared` from denominator
+  - framework core scoring policy loaded from packaged JSON
+  - `external_ref` flag present / absent in model registry snapshot
+- Total: **46 passing tests**
+
 ## [0.1.5] - 2026-05-07
 
 ### External audit follow-up
