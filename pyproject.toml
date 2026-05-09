@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spar-framework"
-version = "0.2.3"
+version = "0.3.0"
 description = "Standalone deterministic admissibility-review framework"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -51,3 +51,4 @@ where = ["src"]
 [tool.setuptools.package-data]
 spar_framework = ["schemas/*.json", "policies/*.json"]
 spar_domain_physics = ["policies/*.json"]
+spar_domain_ml = ["policies/*.json", "schemas/*.json"]

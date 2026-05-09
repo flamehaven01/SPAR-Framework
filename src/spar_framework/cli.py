@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     discover.add_argument(
         "--adapter",
         default="physics",
-        choices=["physics"],
+        choices=["physics", "ml"],
         help="Adapter to use for discovery",
     )
 
@@ -79,10 +79,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Emit example subject payloads for the selected adapter.",
     )
     example.add_argument(
+        "--adapter",
+        default="physics",
+        choices=["physics", "ml"],
+        help="Adapter to generate example for",
+    )
+    example.add_argument(
         "--source",
         default="flat",
-        choices=sorted(GROUND_TRUTH.keys()),
-        help="Ground-truth source key to emit an example for",
+        help="Ground-truth source key for physics adapter (e.g. flat, ads, linear_dilaton)",
+    )
+    example.add_argument(
+        "--task",
+        default="image_classification",
+        help="Task profile for ml adapter (e.g. image_classification, text_classification)",
     )
     example.add_argument(
         "--output-json",
@@ -159,7 +169,7 @@ def _add_review_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--adapter",
         default="physics",
-        choices=["physics"],
+        choices=["physics", "ml"],
         help="Domain adapter to use for review",
     )
     parser.add_argument("--output-json", help="Path to write JSON review result")
@@ -266,10 +276,15 @@ def _run_schema(args: argparse.Namespace) -> int:
 
 
 def _run_example(args: argparse.Namespace) -> int:
-    payload = {
-        "source": args.source,
-        "subject": _example_subject(args.source),
-    }
+    adapter = getattr(args, "adapter", "physics")
+    if adapter == "ml":
+        payload = {"task": args.task, "subject": _ml_example_subject(args.task)}
+    else:
+        source = args.source
+        if source not in GROUND_TRUTH:
+            return _emit_error(EXIT_INPUT_ERROR, "input_error",
+                               f"Unknown source '{source}'. Valid: {sorted(GROUND_TRUTH.keys())}")
+        payload = {"source": source, "subject": _example_subject(source)}
     encoded = json.dumps(payload, indent=2)
     if args.output_json:
         Path(args.output_json).write_text(encoded, encoding="utf-8")
@@ -314,9 +329,68 @@ def _load_subject_payload(path: str) -> dict[str, Any]:
     raise ValueError("Subject JSON must be an object or an example wrapper with a 'subject' object.")
 
 
+def _ml_example_subject(task: str) -> dict[str, Any]:
+    examples: dict[str, dict[str, Any]] = {
+        "image_classification": {
+            "task_family": "image_classification",
+            "dataset": "ImageNet-1k",
+            "split": "val",
+            "metric_name": "top1_accuracy",
+            "metric_value": 0.912,
+            "metric_direction": "higher_is_better",
+            "baseline_name": "prior_sota",
+            "baseline_value": 0.905,
+            "claim_profile": {
+                "sota_claimed": True,
+                "generalization_claimed": True,
+                "robustness_claimed": False,
+            },
+            "reproducibility": {
+                "seed_present": True,
+                "dataset_version_present": True,
+                "config_hash_present": True,
+            },
+            "evaluation_scope": {
+                "ood_evaluated": False,
+                "robustness_evaluated": False,
+                "claim_scope_restricted": True,
+            },
+        },
+        "text_classification": {
+            "task_family": "text_classification",
+            "dataset": "GLUE",
+            "split": "dev",
+            "metric_name": "accuracy",
+            "metric_value": 0.921,
+            "metric_direction": "higher_is_better",
+            "baseline_name": "bert_base",
+            "baseline_value": 0.847,
+            "claim_profile": {
+                "sota_claimed": True,
+                "generalization_claimed": False,
+                "robustness_claimed": False,
+            },
+            "reproducibility": {
+                "seed_present": True,
+                "dataset_version_present": True,
+                "config_hash_present": False,
+            },
+            "evaluation_scope": {
+                "ood_evaluated": False,
+                "robustness_evaluated": False,
+                "claim_scope_restricted": False,
+            },
+        },
+    }
+    return examples.get(task, examples["image_classification"])
+
+
 def _get_runtime(adapter: str):
     if adapter == "physics":
         return get_review_runtime()
+    if adapter == "ml":
+        from spar_domain_ml.runtime import get_review_runtime as get_ml_runtime
+        return get_ml_runtime()
     raise ValueError(f"Unsupported adapter: {adapter}")
 
 

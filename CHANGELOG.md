@@ -2,6 +2,57 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-09
+
+### New adapter: spar_domain_ml
+
+Second domain adapter. Covers benchmark claim drift for ML systems. Scope is deliberately narrow: benchmark/metric/split contract, reproducibility surface, and three first-class claim types (SOTA, generalization, robustness). Extended claims (fairness, calibration, efficiency) are declared as not covered via framework_declared surfaces.
+
+**Subject schema** (`src/spar_domain_ml/schemas/ml_subject.schema.json`):
+- `task_family`, `dataset`, `split`, `metric_name`, `metric_value`, `metric_direction`
+- `baseline_name`, `baseline_value` (required when `sota_claimed=true`)
+- `claim_profile`: `sota_claimed`, `generalization_claimed`, `robustness_claimed`
+- `reproducibility`: `seed_present`, `dataset_version_present`, `config_hash_present`
+- `evaluation_scope`: `ood_evaluated`, `robustness_evaluated`, `claim_scope_restricted`
+
+**Layer A — benchmark contract checks:**
+- A1: SOTA claim vs baseline anchor (FAIL if missing, ANOMALY if metric contradicts)
+- A2: Generalization claim vs OOD / scope restriction (GAP if neither present)
+- A3: Robustness claim vs evaluation evidence (GAP if not evaluated)
+
+**Layer B — claim language vs subject profile:**
+- B1: SOTA language in report_text vs `sota_claimed` (WARN if exceeds profile)
+- B2: Generalization language vs `generalization_claimed` (WARN if exceeds)
+- B3: Extended claim class coverage (CANNOT_CHECK — not reviewed in v0.3.0)
+
+**Layer C — evidence maturity:**
+- C1: Reproducibility maturity (3/3=GENUINE, 2/3=APPROXIMATION, <2=GAP)
+- C2: Evaluation surface completeness vs claimed scope
+
+**Framework-declared limitation surfaces (not scored):**
+- FD-M1: Extended claim classes not covered
+- FD-M2: Temporal drift analysis not reviewed
+- FD-M3: Cross-task generalization declared partial
+
+**Policy file:** `src/spar_domain_ml/policies/ml_review_policy.v1.json`
+
+### CLI generalization
+
+- `--adapter` now accepts `physics` and `ml` in `spar review`, `spar discover`, and `spar example`
+- `spar example --adapter ml --task image_classification` generates ML subject templates
+- `spar example --adapter ml --task text_classification` available
+- Physics `--source` validation moved from argparse `choices=` into runtime check to support adapter-specific source sets
+
+### Validation
+
+- Added `tests/test_ml_adapter.py` with 16 tests covering:
+  - All 5 claim drift cases (SOTA without baseline, generalization without OOD, robustness without eval, metric contradiction, text exceeds profile)
+  - Reproducibility threshold boundaries (3/3, 2/3, 1/3)
+  - Framework-declared scope validation
+  - Registry snapshot counts
+  - Policy loader correctness
+- Total: **68 passing tests** (52 physics + 16 ML)
+
 ## [0.2.3] - 2026-05-09
 
 ### Core hardening — adapter override readiness

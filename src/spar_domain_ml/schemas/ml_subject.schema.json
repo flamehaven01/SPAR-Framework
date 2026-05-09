@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/flamehaven01/SPAR-Framework/schemas/ml_subject.schema.json",
+  "title": "SPAR ML Adapter Subject",
+  "description": "Structured subject payload for the spar_domain_ml benchmark claim-drift adapter.",
+  "type": "object",
+  "required": [
+    "task_family",
+    "dataset",
+    "split",
+    "metric_name",
+    "metric_value",
+    "metric_direction",
+    "claim_profile",
+    "reproducibility",
+    "evaluation_scope"
+  ],
+  "properties": {
+    "task_family": {
+      "type": "string",
+      "description": "ML task family (e.g. image_classification, text_classification, object_detection)"
+    },
+    "dataset": {
+      "type": "string",
+      "description": "Primary evaluation dataset (e.g. ImageNet-1k, GLUE, COCO)"
+    },
+    "split": {
+      "type": "string",
+      "description": "Evaluation split used (e.g. val, test, dev)"
+    },
+    "metric_name": {
+      "type": "string",
+      "description": "Primary metric name (e.g. top1_accuracy, f1, map)"
+    },
+    "metric_value": {
+      "type": "number",
+      "description": "Reported metric value"
+    },
+    "metric_direction": {
+      "type": "string",
+      "enum": ["higher_is_better", "lower_is_better"],
+      "description": "Whether higher or lower values indicate better performance"
+    },
+    "baseline_name": {
+      "type": "string",
+      "description": "Name of the comparison baseline (required when sota_claimed=true)"
+    },
+    "baseline_value": {
+      "type": "number",
+      "description": "Baseline metric value for comparison (required when sota_claimed=true)"
+    },
+    "claim_profile": {
+      "type": "object",
+      "required": ["sota_claimed", "generalization_claimed", "robustness_claimed"],
+      "properties": {
+        "sota_claimed": {
+          "type": "boolean",
+          "description": "Author claims state-of-the-art performance"
+        },
+        "generalization_claimed": {
+          "type": "boolean",
+          "description": "Author claims general applicability beyond evaluation scope"
+        },
+        "robustness_claimed": {
+          "type": "boolean",
+          "description": "Author claims robustness to distribution shift or perturbations"
+        }
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "required": ["seed_present", "dataset_version_present", "config_hash_present"],
+      "properties": {
+        "seed_present": {"type": "boolean"},
+        "dataset_version_present": {"type": "boolean"},
+        "config_hash_present": {"type": "boolean"}
+      }
+    },
+    "evaluation_scope": {
+      "type": "object",
+      "required": ["ood_evaluated", "robustness_evaluated", "claim_scope_restricted"],
+      "properties": {
+        "ood_evaluated": {
+          "type": "boolean",
+          "description": "Whether out-of-distribution evaluation was performed"
+        },
+        "robustness_evaluated": {
+          "type": "boolean",
+          "description": "Whether robustness (noise, perturbation) evaluation was performed"
+        },
+        "claim_scope_restricted": {
+          "type": "boolean",
+          "description": "Whether the paper explicitly restricts generalization claims to the evaluation scope"
+        }
+      }
+    }
+  }
+}

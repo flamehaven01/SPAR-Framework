@@ -1,0 +1,42 @@
+{
+  "version": "ml-review-policy-v1",
+  "layer_a": {
+    "sota_requires_baseline": true,
+    "generalization_requires_ood_or_scope_restriction": true,
+    "robustness_requires_eval": true,
+    "unknown_claim_class_status": "CANNOT_CHECK"
+  },
+  "layer_b": {
+    "sota_phrases": [
+      "state-of-the-art",
+      "state of the art",
+      "best known",
+      "outperforms all",
+      "superior to all baselines",
+      "new best"
+    ],
+    "generalization_phrases": [
+      "generalizes to",
+      "broadly applicable",
+      "generalizes across",
+      "universal",
+      "domain-agnostic"
+    ],
+    "robustness_phrases": [
+      "robust to",
+      "robust across",
+      "noise-tolerant",
+      "stable under",
+      "invariant to"
+    ]
+  },
+  "layer_c": {
+    "reproducibility_fields": [
+      "seed_present",
+      "dataset_version_present",
+      "config_hash_present"
+    ],
+    "genuine_threshold": 3,
+    "approximation_threshold": 2
+  }
+}
