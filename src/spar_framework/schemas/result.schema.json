@@ -9,6 +9,8 @@
     "score",
     "grade",
     "verdict",
+    "claim_drift",
+    "coverage_rate",
     "layer_a",
     "layer_b",
     "layer_c",
@@ -29,6 +31,17 @@
     },
     "verdict": {
       "type": "string"
+    },
+    "claim_drift": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Sum of absolute penalty weights from subject checks (Layer A/B/C). Excludes slop_penalty and framework_declared."
+    },
+    "coverage_rate": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Fraction of subject checks returning a determinate result (not CANNOT_CHECK). framework_declared excluded."
     },
     "slop_hits": {
       "type": "array",
@@ -90,7 +103,8 @@
         "status",
         "detail",
         "ref",
-        "basis"
+        "basis",
+        "scope"
       ],
       "properties": {
         "check_id": {
@@ -114,6 +128,14 @@
             "subject_derived",
             "framework_declared"
           ]
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "subject",
+            "adapter_limitation"
+          ],
+          "description": "subject: check evaluates the reviewed subject. adapter_limitation: check declares a known limitation of the adapter itself."
         }
       }
     }

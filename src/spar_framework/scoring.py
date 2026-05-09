@@ -20,6 +20,7 @@ def _load_review_policy() -> dict[str, Any]:
 @dataclass(frozen=True)
 class ReviewPolicy:
     score_table: dict[str, int]
+    base_score: int = 100
     accept_threshold: int = 85
     minor_revision_threshold: int = 70
     major_revision_threshold: int = 50
@@ -42,6 +43,7 @@ def _build_default_policy() -> ReviewPolicy:
     data = _load_review_policy()
     return ReviewPolicy(
         score_table=data["scoring"]["penalties"],
+        base_score=data["scoring"]["base_score"],
         accept_threshold=data["verdict"]["accept_threshold"],
         minor_revision_threshold=data["verdict"]["minor_revision_threshold"],
         major_revision_threshold=data["verdict"]["major_revision_threshold"],
@@ -75,7 +77,7 @@ def compute_score(
     slop_penalty: int = 0,
     policy: ReviewPolicy = default_policy,
 ) -> int:
-    score = 100
+    score = policy.base_score
     for check in iter_checks(layer_a, layer_b, layer_c):
         score += score_delta(check, policy)
     score -= slop_penalty
