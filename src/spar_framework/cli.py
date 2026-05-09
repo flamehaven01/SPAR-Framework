@@ -8,9 +8,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from spar_domain_physics.ground_truth_table import GROUND_TRUTH
-from spar_domain_physics.runtime import get_review_runtime
-
 from .mica import discover_mica_runtime
 from .schema_loader import load_schema
 from .workflow import run_contextual_review
@@ -21,6 +18,14 @@ EXIT_INPUT_ERROR = 2
 EXIT_SYSTEM_ERROR = 3
 
 SUBCOMMANDS = {"review", "explain", "discover", "schema", "example"}
+
+# (package, subdir, filename) for adapter-specific schema targets.
+# Entries here take precedence over the framework-level schema_loader.
+_ADAPTER_SCHEMA_ROUTES: dict[str, dict[str, tuple[str, str, str]]] = {
+    "ml": {
+        "subject": ("spar_domain_ml", "schemas", "ml_subject.schema.json"),
+    },
+}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -68,6 +73,12 @@ def build_parser() -> argparse.ArgumentParser:
         "target",
         choices=["subject", "result", "context"],
         help="Schema target to emit",
+    )
+    schema.add_argument(
+        "--adapter",
+        default="physics",
+        choices=["physics", "ml"],
+        help="Adapter context for schema selection (default: physics)",
     )
     schema.add_argument(
         "--output-json",
@@ -267,7 +278,13 @@ def _run_discover(args: argparse.Namespace) -> int:
 
 
 def _run_schema(args: argparse.Namespace) -> int:
-    payload = load_schema(args.target)
+    adapter = getattr(args, "adapter", "physics")
+    route = _ADAPTER_SCHEMA_ROUTES.get(adapter, {}).get(args.target)
+    if route:
+        from .package_data import load_packaged_json
+        payload = load_packaged_json(*route)
+    else:
+        payload = load_schema(args.target)
     encoded = json.dumps(payload, indent=2)
     if args.output_json:
         Path(args.output_json).write_text(encoded, encoding="utf-8")
@@ -280,6 +297,7 @@ def _run_example(args: argparse.Namespace) -> int:
     if adapter == "ml":
         payload = {"task": args.task, "subject": _ml_example_subject(args.task)}
     else:
+        from spar_domain_physics.ground_truth_table import GROUND_TRUTH
         source = args.source
         if source not in GROUND_TRUTH:
             return _emit_error(EXIT_INPUT_ERROR, "input_error",
@@ -387,6 +405,7 @@ def _ml_example_subject(task: str) -> dict[str, Any]:
 
 def _get_runtime(adapter: str):
     if adapter == "physics":
+        from spar_domain_physics.runtime import get_review_runtime
         return get_review_runtime()
     if adapter == "ml":
         from spar_domain_ml.runtime import get_review_runtime as get_ml_runtime

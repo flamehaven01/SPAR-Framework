@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 
 def _base_subject(**overrides):
     subject = {
@@ -240,3 +242,159 @@ def test_ml_layer_c_thresholds_from_policy():
     assert t["genuine_threshold"] == 3
     assert t["approximation_threshold"] == 2
     assert "seed_present" in t["reproducibility_fields"]
+
+
+# ---------------------------------------------------------------------------
+# Layer B v0.3.1 -- B3 robustness check, B4 conditional extended claims
+# ---------------------------------------------------------------------------
+
+
+def test_robustness_language_without_profile_claim_warns():
+    from spar_domain_ml.layer_b import check_b3_robustness_language
+
+    subject = _base_subject(
+        claim_profile={"sota_claimed": False, "generalization_claimed": False, "robustness_claimed": False}
+    )
+    result = check_b3_robustness_language(subject, "Our model is robust to common image corruptions.")
+    assert result.status == "WARN"
+    assert result.check_id == "B3"
+
+
+def test_robustness_language_matching_profile_passes():
+    from spar_domain_ml.layer_b import check_b3_robustness_language
+
+    subject = _base_subject(
+        claim_profile={"sota_claimed": False, "generalization_claimed": False, "robustness_claimed": True}
+    )
+    result = check_b3_robustness_language(subject, "Our model is robust to common corruptions.")
+    assert result.status == "PASS"
+
+
+def test_extended_claims_phrase_detected_is_cannot_check():
+    from spar_domain_ml.layer_b import check_b4_extended_claims
+
+    result = check_b4_extended_claims("We demonstrate strong fairness across demographic groups.")
+    assert result.status == "CANNOT_CHECK"
+    assert result.check_id == "B4"
+
+
+def test_extended_claims_no_phrase_is_pass():
+    from spar_domain_ml.layer_b import check_b4_extended_claims
+
+    result = check_b4_extended_claims("We report top-1 accuracy on ImageNet-1k validation split.")
+    assert result.status == "PASS"
+    assert result.check_id == "B4"
+
+
+# ---------------------------------------------------------------------------
+# Layer A v0.3.1 -- policy-driven gates
+# ---------------------------------------------------------------------------
+
+
+def test_layer_a_rules_loaded_from_policy():
+    from spar_domain_ml.policy_loader import get_layer_a_rules
+
+    rules = get_layer_a_rules()
+    assert rules["sota_requires_baseline"] is True
+    assert rules["generalization_requires_ood_or_scope_restriction"] is True
+    assert rules["robustness_requires_eval"] is True
+
+
+# ---------------------------------------------------------------------------
+# CLI e2e -- spar review / example / schema / explain with --adapter ml
+# ---------------------------------------------------------------------------
+
+
+def test_spar_review_ml_adapter_produces_valid_result(tmp_path):
+    from spar_framework.cli import main
+
+    subject_path = tmp_path / "ml_subject.json"
+    subject_path.write_text(json.dumps(_base_subject()), encoding="utf-8")
+    output_path = tmp_path / "ml_review.json"
+
+    rc = main([
+        "review", "--adapter", "ml",
+        "--subject-json", str(subject_path),
+        "--report-text", "We report top-1 accuracy on ImageNet-1k.",
+        "--output-json", str(output_path),
+    ])
+
+    assert rc == 0
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["verdict"] in {"ACCEPT", "MINOR_REVISION", "MAJOR_REVISION", "REJECT"}
+    assert "claim_drift" in payload
+    assert "coverage_rate" in payload
+    check_ids = {c["check_id"] for c in payload["layer_b"]}
+    assert "B1" in check_ids and "B3" in check_ids and "B4" in check_ids
+
+
+def test_spar_review_ml_adapter_accepts_wrapped_example(tmp_path):
+    from spar_framework.cli import main
+
+    example_path = tmp_path / "example.json"
+    review_path = tmp_path / "review.json"
+
+    rc = main(["example", "--adapter", "ml", "--task", "image_classification",
+               "--output-json", str(example_path)])
+    assert rc == 0
+
+    rc = main([
+        "review", "--adapter", "ml",
+        "--subject-json", str(example_path),
+        "--report-text", "We achieve state-of-the-art top-1 accuracy on ImageNet.",
+        "--output-json", str(review_path),
+    ])
+    assert rc == 0
+    payload = json.loads(review_path.read_text(encoding="utf-8"))
+    assert payload["score"] >= 0
+
+
+def test_spar_example_ml_image_classification(tmp_path):
+    from spar_framework.cli import main
+
+    output_path = tmp_path / "example.json"
+
+    rc = main(["example", "--adapter", "ml", "--task", "image_classification",
+               "--output-json", str(output_path)])
+
+    assert rc == 0
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["task"] == "image_classification"
+    subject = payload["subject"]
+    assert subject["task_family"] == "image_classification"
+    assert "claim_profile" in subject
+    assert "reproducibility" in subject
+
+
+def test_spar_schema_ml_subject(capsys):
+    from spar_framework.cli import main
+
+    rc = main(["schema", "subject", "--adapter", "ml"])
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["title"] == "SPAR ML Adapter Subject"
+    assert "metric_direction" in payload["properties"]
+    assert "claim_profile" in payload["properties"]
+
+
+def test_spar_explain_with_ml_review_output(tmp_path, capsys):
+    from spar_framework.cli import main
+
+    subject_path = tmp_path / "ml_subject.json"
+    subject_path.write_text(json.dumps(_base_subject()), encoding="utf-8")
+    review_path = tmp_path / "ml_review.json"
+
+    main([
+        "review", "--adapter", "ml",
+        "--subject-json", str(subject_path),
+        "--report-text", "We report state-of-the-art top-1 accuracy.",
+        "--output-json", str(review_path),
+    ])
+
+    rc = main(["explain", "--review-json", str(review_path), "--format", "text"])
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "verdict:" in out
+    assert "score:" in out

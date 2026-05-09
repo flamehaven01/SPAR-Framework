@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-05-09
+
+### CLI adapter decoupling
+
+- Removed top-level `from spar_domain_physics.ground_truth_table import GROUND_TRUTH` and `from spar_domain_physics.runtime import get_review_runtime` imports from `cli.py`. Both are now lazy imports inside the functions that need them (`_run_example()` physics branch and `_get_runtime()` physics branch). Importing the `spar_framework.cli` module no longer forces the physics adapter to load.
+- Replaced inline `if adapter == "ml" and args.target == "subject"` check in `_run_schema()` with a `_ADAPTER_SCHEMA_ROUTES` dict (`dict[str, dict[str, tuple[str, str, str]]]`). Adding a new adapter's schema surface is now a single dict entry rather than a new conditional branch.
+
+### Validation
+
+- No new tests (no behavioral change). All **78 tests** still pass.
+
+## [0.3.1] - 2026-05-09
+
+### ML adapter hardening
+
+**Layer B completeness:**
+- Added `check_b3_robustness_language()`: WARN when robustness phrases detected in report_text but `robustness_claimed=false`. Uses `robustness_phrases` from policy (was loaded but unused in v0.3.0).
+- Renamed former B3 to `check_b4_extended_claims()`: now conditional — emits `CANNOT_CHECK` only when extended claim phrases (fairness, calibration, efficiency, safety) are actually detected in report_text; emits `PASS` otherwise. Previously always emitted `CANNOT_CHECK`, inflating false positives on coverage_rate.
+- Added `extended_claim_phrases` list to `ml_review_policy.v1.json` `layer_b` section.
+- `build_layer_b_checks()` now returns B1, B2, B3, B4 (four checks; was three).
+
+**Layer A policy wiring:**
+- `check_a1_sota()`, `check_a2_generalization()`, `check_a3_robustness()` now read gates from `_RULES` (`sota_requires_baseline`, `generalization_requires_ood_or_scope_restriction`, `robustness_requires_eval`) instead of hardcoded `True`. When a policy flag is `false`, the check returns `PASS` or `CANNOT_CHECK` rather than `FAIL`/`GAP`. `_RULES` was loaded in v0.3.0 but not wired.
+
+**CLI schema surface:**
+- `spar schema subject --adapter ml` now returns `ml_subject.schema.json`. Without `--adapter ml`, falls through to the physics schema (unchanged default). `--adapter` flag added to the `schema` subcommand.
+
+### Validation
+
+- Added 10 regression tests:
+  - B3: robustness phrase triggers WARN, matching profile passes
+  - B4: extended phrase triggers CANNOT_CHECK, no phrase returns PASS
+  - Layer A rules loaded from policy with correct values
+  - CLI e2e: `spar review --adapter ml` produces valid result with B1/B3/B4 in layer_b
+  - CLI e2e: `spar review --adapter ml` accepts wrapped example payload
+  - CLI e2e: `spar example --adapter ml --task image_classification` emits correct structure
+  - CLI e2e: `spar schema subject --adapter ml` returns ML subject schema title
+  - CLI e2e: `spar explain` with ML review output emits verdict and score
+- Total: **78 passing tests** (52 physics + 26 ML)
+
 ## [0.3.0] - 2026-05-09
 
 ### New adapter: spar_domain_ml

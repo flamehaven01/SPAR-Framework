@@ -28,6 +28,17 @@
       "noise-tolerant",
       "stable under",
       "invariant to"
+    ],
+    "extended_claim_phrases": [
+      "fairness",
+      "fair to",
+      "equitable",
+      "calibrated",
+      "calibration",
+      "efficient",
+      "efficiency",
+      "safety",
+      "safe for"
     ]
   },
   "layer_c": {

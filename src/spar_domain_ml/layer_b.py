@@ -12,6 +12,7 @@ _PHRASES = get_layer_b_phrases()
 _SOTA_PHRASES: list[str] = _PHRASES["sota_phrases"]
 _GEN_PHRASES: list[str] = _PHRASES["generalization_phrases"]
 _ROB_PHRASES: list[str] = _PHRASES["robustness_phrases"]
+_EXT_PHRASES: list[str] = _PHRASES.get("extended_claim_phrases", [])
 
 
 def _text_contains_any(text: str, phrases: list[str]) -> str | None:
@@ -53,13 +54,32 @@ def check_b2_generalization_language(subject: dict[str, Any], report_text: str) 
                        "Generalization language consistent with claim profile.")
 
 
-def check_b3_extended_claims(report_text: str) -> CheckResult:
-    """Extended claim classes (fairness, calibration, etc.) are not reviewed."""
-    return CheckResult(
-        "B3", "Extended claim class coverage", "CANNOT_CHECK",
-        "Extended claim classes (fairness, calibration, efficiency, safety) are not reviewed in v0.3.0.",
-        basis="subject_derived",
-    )
+def check_b3_robustness_language(subject: dict[str, Any], report_text: str) -> CheckResult:
+    """Robustness language in report_text vs claim_profile.robustness_claimed."""
+    hit = _text_contains_any(report_text, _ROB_PHRASES)
+    rob_in_profile = subject.get("claim_profile", {}).get("robustness_claimed", False)
+
+    if hit and not rob_in_profile:
+        return CheckResult(
+            "B3", "Robustness language vs profile", "WARN",
+            f"Report text contains robustness phrase '{hit}' but claim_profile.robustness_claimed=false.",
+        )
+    return CheckResult("B3", "Robustness language vs profile", "PASS",
+                       "Robustness language consistent with claim profile.")
+
+
+def check_b4_extended_claims(report_text: str) -> CheckResult:
+    """Extended claim class detection — CANNOT_CHECK only when unsupported phrases are present."""
+    hit = _text_contains_any(report_text, _EXT_PHRASES)
+    if hit:
+        return CheckResult(
+            "B4", "Extended claim class coverage", "CANNOT_CHECK",
+            f"Extended claim phrase '{hit}' detected. Extended claim classes (fairness, calibration, "
+            "efficiency, safety) are not reviewed in v0.3.x.",
+            basis="subject_derived",
+        )
+    return CheckResult("B4", "Extended claim class coverage", "PASS",
+                       "No extended claim language detected.")
 
 
 def build_layer_b_checks(
@@ -74,5 +94,6 @@ def build_layer_b_checks(
     return [
         check_b1_sota_language(subject, report_text),
         check_b2_generalization_language(subject, report_text),
-        check_b3_extended_claims(report_text),
+        check_b3_robustness_language(subject, report_text),
+        check_b4_extended_claims(report_text),
     ]

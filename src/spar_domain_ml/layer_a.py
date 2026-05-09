@@ -25,10 +25,13 @@ def check_a1_sota(subject: dict[str, Any]) -> CheckResult:
 
     baseline_value = subject.get("baseline_value")
     if baseline_value is None:
-        return CheckResult(
-            "A1", "SOTA claim anchor", "FAIL",
-            "sota_claimed=true but baseline_value absent. Claim has no measurable anchor.",
-        )
+        if _RULES.get("sota_requires_baseline", True):
+            return CheckResult(
+                "A1", "SOTA claim anchor", "FAIL",
+                "sota_claimed=true but baseline_value absent. Claim has no measurable anchor.",
+            )
+        return CheckResult("A1", "SOTA claim anchor", "CANNOT_CHECK",
+                           "sota_claimed=true but baseline_value absent; policy permits unchecked claim.")
 
     metric_value = subject.get("metric_value")
     if metric_value is None:
@@ -59,11 +62,14 @@ def check_a2_generalization(subject: dict[str, Any]) -> CheckResult:
     restricted = eval_scope.get("claim_scope_restricted", False)
 
     if not ood and not restricted:
-        return CheckResult(
-            "A2", "Generalization claim scope", "GAP",
-            "generalization_claimed=true but ood_evaluated=false and claim_scope_restricted=false. "
-            "Claim exceeds evaluation surface.",
-        )
+        if _RULES.get("generalization_requires_ood_or_scope_restriction", True):
+            return CheckResult(
+                "A2", "Generalization claim scope", "GAP",
+                "generalization_claimed=true but ood_evaluated=false and claim_scope_restricted=false. "
+                "Claim exceeds evaluation surface.",
+            )
+        return CheckResult("A2", "Generalization claim scope", "PASS",
+                           "Policy permits generalization claim without OOD or scope restriction.")
     return CheckResult(
         "A2", "Generalization claim scope", "CONSISTENT",
         f"Generalization claim bounded: ood_evaluated={ood}, claim_scope_restricted={restricted}.",
@@ -78,10 +84,13 @@ def check_a3_robustness(subject: dict[str, Any]) -> CheckResult:
 
     eval_scope = subject.get("evaluation_scope", {})
     if not eval_scope.get("robustness_evaluated", False):
-        return CheckResult(
-            "A3", "Robustness claim evidence", "GAP",
-            "robustness_claimed=true but robustness_evaluated=false. No supporting evidence surface.",
-        )
+        if _RULES.get("robustness_requires_eval", True):
+            return CheckResult(
+                "A3", "Robustness claim evidence", "GAP",
+                "robustness_claimed=true but robustness_evaluated=false. No supporting evidence surface.",
+            )
+        return CheckResult("A3", "Robustness claim evidence", "PASS",
+                           "Policy permits robustness claim without evaluation evidence.")
     return CheckResult("A3", "Robustness claim evidence", "CONSISTENT", "Robustness claim backed by evaluation.")
 
 
