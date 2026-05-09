@@ -18,6 +18,11 @@
     "ricci_norm_pass_below": 0.01,
     "ricci_norm_warn_below": 0.1
   },
+  "layer_c": {
+    "beta_b_near_zero_threshold": 1e-9,
+    "brst_ricci_gap_above": 0.1,
+    "brst_ricci_approx_above": 0.01
+  },
   "ground_truth": {
     "flat": {
       "gate": {

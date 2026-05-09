@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-05-09
+
+### Physics adapter threshold hardening
+
+- Added `layer_c` section to `physics_review_policy.v1.json` with three explicitly named thresholds:
+  - `beta_b_near_zero_threshold: 1e-9` — boundary below which `beta_B` is classified as near-zero in `evaluate_beta_b_genuineness()`
+  - `brst_ricci_gap_above: 0.1` — `ricci_norm` at or above this threshold → `GAP` in BRST genuineness
+  - `brst_ricci_approx_above: 0.01` — `ricci_norm` at or above this threshold → `APPROXIMATION` in BRST genuineness
+- Added `get_layer_c_thresholds()` to `policy_loader.py` following the existing `get_layer_b_thresholds()` pattern.
+- Updated `layer_c_foundation_helpers.py` to load all three thresholds from policy at import time; removed all literal `1e-9`, `0.1`, `0.01` comparisons from check logic.
+
+### Validation
+
+- Added 2 regression tests covering:
+  - `get_layer_c_thresholds()` returns values matching policy JSON
+  - BRST ricci boundary classification is correct at `0.1` (GAP), `0.05` (APPROXIMATION), `0.005` (GENUINE)
+- Total: **50 passing tests**
+
 ## [0.2.1] - 2026-05-09
 
 ### Core policy hardening

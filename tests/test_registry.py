@@ -1104,3 +1104,33 @@ def test_coverage_rate_precision_loaded_from_policy():
     assert rate == round(2 / 3, 4)
     decimal_places = len(str(rate).split(".")[-1]) if "." in str(rate) else 0
     assert decimal_places <= default_policy.coverage_rate_precision
+
+
+# ---------------------------------------------------------------------------
+# v0.2.2 physics adapter threshold policy wiring regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_layer_c_thresholds_loaded_from_physics_policy():
+    from spar_domain_physics.policy_loader import get_layer_c_thresholds
+
+    thresholds = get_layer_c_thresholds()
+    assert thresholds["beta_b_near_zero_threshold"] == 1e-9
+    assert thresholds["brst_ricci_gap_above"] == 0.1
+    assert thresholds["brst_ricci_approx_above"] == 0.01
+
+
+def test_brst_ricci_boundary_uses_policy_threshold():
+    from spar_domain_physics.layer_c_foundation_helpers import evaluate_brst_genuineness
+
+    # exactly at gap threshold -> GAP
+    status_gap, _ = evaluate_brst_genuineness({"ricci_norm": 0.1}, source="flat minkowski")
+    assert status_gap == "GAP"
+
+    # just below approx threshold -> GENUINE
+    status_genuine, _ = evaluate_brst_genuineness({"ricci_norm": 0.005}, source="flat minkowski")
+    assert status_genuine == "GENUINE"
+
+    # between thresholds -> APPROXIMATION
+    status_approx, _ = evaluate_brst_genuineness({"ricci_norm": 0.05}, source="flat minkowski")
+    assert status_approx == "APPROXIMATION"

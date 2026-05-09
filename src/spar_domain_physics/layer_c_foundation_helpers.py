@@ -6,6 +6,12 @@ from dataclasses import dataclass
 from typing import Any
 
 from .architecture_gaps import PHYSICS_ARCHITECTURE_GAPS
+from .policy_loader import get_layer_c_thresholds
+
+_LAYER_C = get_layer_c_thresholds()
+_BETA_B_NEAR_ZERO = float(_LAYER_C["beta_b_near_zero_threshold"])
+_BRST_RICCI_GAP_ABOVE = float(_LAYER_C["brst_ricci_gap_above"])
+_BRST_RICCI_APPROX_ABOVE = float(_LAYER_C["brst_ricci_approx_above"])
 
 
 @dataclass(frozen=True)
@@ -46,19 +52,19 @@ def _classify_zero_beta_b_case(ctx: BetaBGenuinenessContext) -> tuple[str, str]:
 
 def evaluate_beta_b_genuineness(subject: dict[str, Any]) -> tuple[str, str]:
     ctx = _extract_beta_b_context(subject)
-    if ctx.beta_b_value is not None and abs(ctx.beta_b_value) < 1e-9:
+    if ctx.beta_b_value is not None and abs(ctx.beta_b_value) < _BETA_B_NEAR_ZERO:
         return _classify_zero_beta_b_case(ctx)
     return "CANNOT_DETERMINE", "beta_B non-zero or unavailable; genuineness depends on H-flux configuration."
 
 
 def _classify_brst_with_ricci(ricci_norm: float) -> tuple[str, str]:
-    if ricci_norm >= 0.1:
+    if ricci_norm >= _BRST_RICCI_GAP_ABOVE:
         return (
             "GAP",
-            f"ricci_norm={ricci_norm:.4g} >= 0.1: alpha' corrections significant. "
+            f"ricci_norm={ricci_norm:.4g} >= {_BRST_RICCI_GAP_ABOVE}: alpha' corrections significant. "
             f"Leading-order c_total insufficient for this curvature. {PHYSICS_ARCHITECTURE_GAPS['C2']}",
         )
-    if ricci_norm >= 0.01:
+    if ricci_norm >= _BRST_RICCI_APPROX_ABOVE:
         return (
             "APPROXIMATION",
             f"ricci_norm={ricci_norm:.4g}: moderate curvature. "
@@ -66,7 +72,7 @@ def _classify_brst_with_ricci(ricci_norm: float) -> tuple[str, str]:
         )
     return (
             "GENUINE",
-            f"ricci_norm={ricci_norm:.4g} < 0.01: near-flat. "
+            f"ricci_norm={ricci_norm:.4g} < {_BRST_RICCI_APPROX_ABOVE}: near-flat. "
             f"Leading-order c_total exact to O(alpha'^2). {PHYSICS_ARCHITECTURE_GAPS['C2']}",
         )
 

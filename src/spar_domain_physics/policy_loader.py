@@ -31,3 +31,7 @@ def get_layer_a_defaults() -> dict[str, Any]:
 
 def get_layer_b_thresholds() -> dict[str, Any]:
     return load_physics_review_policy()["layer_b"]
+
+
+def get_layer_c_thresholds() -> dict[str, Any]:
+    return load_physics_review_policy()["layer_c"]
