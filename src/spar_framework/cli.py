@@ -30,7 +30,7 @@ _ADAPTER_SCHEMA_ROUTES: dict[str, dict[str, tuple[str, str, str]]] = {
     },
 }
 
-_ADAPTER_CHOICES = ["physics", "ml", "math"]
+_ADAPTER_CHOICES = ["physics", "ml", "math", "generic"]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -195,7 +195,22 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _add_review_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--subject-json", required=True, help="Path to subject JSON file")
+    # v0.6.0 (SPAR-001): positional <project> + --from-json heuristic added.
+    # --subject-json kept as the canonical, strict-schema entry point (now optional;
+    # validation lives in _run_review so legacy callers keep working unchanged).
+    parser.add_argument(
+        "project",
+        nargs="?",
+        default=None,
+        help="Optional project root (alias for --project-root when --project-root is omitted).",
+    )
+    parser.add_argument("--subject-json", help="Path to subject JSON file (strict schema)")
+    parser.add_argument(
+        "--from-json",
+        dest="from_json",
+        help="Path to freeform JSON; keys are heuristically mapped to layer A/B/C surfaces. "
+             "Mutually exclusive with --subject-json.",
+    )
     parser.add_argument("--source", default="", help="Declared source/background name")
     parser.add_argument("--gate", default="", help="Declared gate status")
     parser.add_argument("--report-text", default="", help="Inline report text")
@@ -222,19 +237,48 @@ def _add_review_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _run_review(args: argparse.Namespace) -> int:
+    # v0.6.0 (SPAR-001): resolve subject from one of three sources.
+    subject_json = getattr(args, "subject_json", None)
+    from_json = getattr(args, "from_json", None)
+    if subject_json and from_json:
+        return _emit_error(
+            EXIT_INPUT_ERROR,
+            "input_error",
+            "--subject-json and --from-json are mutually exclusive; pick one.",
+        )
+    if not subject_json and not from_json:
+        return _emit_error(
+            EXIT_INPUT_ERROR,
+            "input_error",
+            "review requires --subject-json PATH or --from-json PATH.",
+        )
+
     runtime = _get_runtime(args.adapter)
-    subject = _load_subject_payload(args.subject_json)
     report_text = args.report_text
     if args.report_file:
         report_text = Path(args.report_file).read_text(encoding="utf-8")
 
+    derived_source = ""
+    if subject_json:
+        subject = _load_subject_payload(subject_json)
+    else:
+        subject, derived_report, derived_source = _heuristic_from_json(from_json)
+        if derived_report and not report_text:
+            report_text = derived_report
+
+    source = args.source or derived_source
+
+    # positional <project> is an alias for --project-root when the flag is unset
+    positional_project = getattr(args, "project", None)
+    project_root = args.project_root or positional_project
+
     result = run_contextual_review(
         runtime=runtime,
         subject=subject,
-        source=args.source,
+        source=source,
         gate=args.gate,
         report_text=report_text,
-        project_root=args.project_root,
+        project_root=project_root,
         mica_context_path=args.mica_context,
         leda_injection_path=args.leda_injection,
         leda_profile=args.leda_profile,
@@ -384,6 +428,43 @@ def _load_subject_payload(path: str) -> dict[str, Any]:
     raise ValueError("Subject JSON must be an object or an example wrapper with a 'subject' object.")
 
 
+# v0.6.0 (SPAR-001): freeform-JSON heuristic key router.
+# Keys that the framework needs to recognise are pulled out by substring match;
+# everything else is preserved in subject as-is so adapter-specific keys keep working.
+_REPORT_TEXT_KEYS = ("report_text", "report", "summary", "description", "narrative")
+_SOURCE_KEYS = ("source", "background", "ground_truth", "ground_truth_source")
+
+
+def _heuristic_from_json(path: str) -> tuple[dict[str, Any], str, str]:
+    """Map freeform JSON to (subject, report_text, source).
+
+    Rules:
+      - Top-level key matching _REPORT_TEXT_KEYS (str value) -> report_text.
+      - Top-level key matching _SOURCE_KEYS (str value) -> source.
+      - Everything else (including unrecognised keys) is kept in subject.
+      - {"subject": {...}} wrapper is unwrapped first so wrapped/raw both work.
+    """
+    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ValueError("--from-json payload must be a JSON object.")
+    if isinstance(raw.get("subject"), dict):
+        raw = dict(raw["subject"])
+
+    report_text = ""
+    source = ""
+    subject: dict[str, Any] = {}
+    for key, value in raw.items():
+        lk = key.lower()
+        if not report_text and isinstance(value, str) and lk in _REPORT_TEXT_KEYS:
+            report_text = value
+            continue
+        if not source and isinstance(value, str) and lk in _SOURCE_KEYS:
+            source = value
+            continue
+        subject[key] = value
+    return subject, report_text, source
+
+
 def _ml_example_subject(task: str) -> dict[str, Any]:
     examples: dict[str, dict[str, Any]] = {
         "image_classification": {
@@ -486,6 +567,10 @@ def _get_runtime(adapter: str):
     if adapter == "math":
         from spar_domain_math.runtime import get_review_runtime as get_math_runtime
         return get_math_runtime()
+    if adapter == "generic":
+        # v0.6.0 (SPAR-002): domain-agnostic adapter with minimal claim_profile.
+        from spar_domain_generic.runtime import get_review_runtime as get_generic_runtime
+        return get_generic_runtime()
     raise ValueError(f"Unsupported adapter: {adapter}")
 
 

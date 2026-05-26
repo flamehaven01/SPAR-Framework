@@ -2,6 +2,69 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-26
+
+### Added
+
+- **SPAR-001 (CLI ergonomics).** `spar review` accepts a new
+  `--from-json PATH` flag and an optional positional `<project>` argument.
+  `--from-json` runs a heuristic key router over freeform JSON: keys matching
+  `report_text` / `report` / `summary` / `description` / `narrative` (string
+  values) are routed to `report_text`; keys matching `source` / `background`
+  / `ground_truth` / `ground_truth_source` (string values) populate the
+  `--source` field; everything else is preserved on `subject` as-is.
+  `--subject-json` (canonical, strict schema) is now optional but still
+  validated; passing both `--subject-json` and `--from-json` is rejected as
+  `input_error`. Positional `<project>` aliases `--project-root` when the
+  flag is unset. Legacy invocations are byte-for-byte compatible.
+- **SPAR-002 (`spar_domain_generic` adapter).** New domain-agnostic adapter
+  package at `src/spar_domain_generic/`. Operates on a minimal
+  `claim_profile` schema (`claim_made`, `evidence_cited`, `scope_bounded`)
+  with no physics/ML/math-specific keys. Wired into the CLI as
+  `--adapter generic`. Intended as (a) a template for new adapters and
+  (b) a fallback for `--from-json` input that does not commit to a specific
+  domain schema.
+- **SPAR-003 (`ReviewResult.warnings`).** New `warnings: list[str]` field on
+  `ReviewResult`. The engine emits `no_observation_source` when
+  `len(layer_a) == 0 AND claim_drift == 0` — a guard against the
+  silent-pass-on-empty-input case where a missing or garbage subject would
+  otherwise look identical to a clean review. `to_dict()` omits `warnings`
+  when the list is empty (no breaking change for downstream consumers).
+- **SPAR-005 (`$SPAR_POLICY_PATH`).** Scoring policy resolution now consults
+  the `SPAR_POLICY_PATH` environment variable before falling back to the
+  packaged default at `spar_framework/policies/review_policy.v1.json`.
+  A path that is set but missing raises `FileNotFoundError` instead of
+  silently falling through. Cached for the process lifetime; tests rebuild
+  via `scoring._load_review_policy.cache_clear()`.
+
+### Documentation
+
+- **SPAR-004.** New `docs/RUNTIME.md` documenting the `ReviewRuntime`
+  contract: minimal vs full construction, layer-builder signatures, the
+  generic adapter as a template, and the `$SPAR_POLICY_PATH` override.
+
+### Tests
+
+- 22 new tests across 4 files:
+  - `tests/test_cli_review.py` (7) — SPAR-001 backward compatibility,
+    mutual exclusion, missing-input errors, heuristic key routing,
+    subject-wrapper unwrapping, non-object payload rejection.
+  - `tests/test_warnings.py` (4) — SPAR-003 emission conditions and
+    `to_dict()` omission.
+  - `tests/test_policy_env.py` (4) — SPAR-005 default, override, missing
+    file, whitespace-only env var.
+  - `tests/test_generic_adapter.py` (7) — SPAR-002 runtime invocation,
+    layer A/C status flags, slop detection, framework-declared gaps,
+    registry snapshot shape, CLI smoke tests for `--adapter generic`.
+- Total: **147 passing tests** (up from 125 in v0.5.0).
+
+### Notes
+
+- No regressions: all 125 v0.5.0 tests still pass.
+- No silent fallbacks introduced: the new `--from-json` path never invents
+  data; unrecognised keys are preserved on `subject` and surfaced through
+  the adapter's existing layer-A checks.
+
 ## [0.5.0] - 2026-05-09
 
 ### Benchmark harness and comparison surface

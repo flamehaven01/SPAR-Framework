@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .package_data import load_packaged_json
@@ -12,8 +15,25 @@ if TYPE_CHECKING:
     from .result_types import CheckResult
 
 
+# v0.6.0 (SPAR-005): policy file precedence resolved at first load:
+#   1. $SPAR_POLICY_PATH if set and the file exists
+#   2. packaged default (spar_framework/policies/review_policy.v1.json)
+# The result is lru_cached, so the env-var is read once per process. Tests
+# that need to swap policies mid-run must clear the cache via
+# `_load_review_policy.cache_clear()`.
+_POLICY_ENV_VAR = "SPAR_POLICY_PATH"
+
+
 @lru_cache(maxsize=1)
 def _load_review_policy() -> dict[str, Any]:
+    override = os.environ.get(_POLICY_ENV_VAR, "").strip()
+    if override:
+        path = Path(override)
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"${_POLICY_ENV_VAR} points to '{override}' but no such file exists."
+            )
+        return json.loads(path.read_text(encoding="utf-8"))
     return load_packaged_json("spar_framework", "policies", "review_policy.v1.json")
 
 

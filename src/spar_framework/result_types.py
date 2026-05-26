@@ -47,9 +47,14 @@ class ReviewResult:
     context_summary: dict[str, Any] | None = None
     model_registry_snapshot: dict[str, Any] | None = None
     gap_registry_snapshot: dict[str, Any] | None = None
+    # v0.6.0 (SPAR-003): non-fatal structural warnings emitted by the engine.
+    # Distinct from layer_a/b/c CheckResult flags — these are observations about
+    # the review surface itself (e.g. no_observation_source when layer_a is empty
+    # AND claim_drift==0, which would otherwise silently pass an empty subject).
+    warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "subject": self.subject,
             "gate": self.gate,
             "score": self.score,
@@ -66,3 +71,6 @@ class ReviewResult:
             "layer_c": [item.to_dict() for item in self.layer_c],
             "framework_declared": [item.to_dict() for item in self.framework_declared],
         }
+        if self.warnings:
+            payload["warnings"] = list(self.warnings)
+        return payload

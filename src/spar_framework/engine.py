@@ -89,6 +89,14 @@ def run_review(
         gap_registry_snapshot=runtime.build_gap_registry_snapshot() if runtime.build_gap_registry_snapshot else None,
     )
 
+    # v0.6.0 (SPAR-003): emit structural warnings about the review surface itself.
+    # no_observation_source: layer_a produced zero checks AND no subject drift was
+    # detected anywhere. Without this warning, an empty/garbage subject silently
+    # passes with claim_drift=0, score=base — looks identical to a clean review.
+    warnings: list[str] = []
+    if len(layer_a) == 0 and core_review["claim_drift"] == 0:
+        warnings.append("no_observation_source")
+
     return ReviewResult(
         subject=str(subject),
         gate=gate,
@@ -108,4 +116,5 @@ def run_review(
         ),
         model_registry_snapshot=registry_snapshots["model_registry_snapshot"],
         gap_registry_snapshot=registry_snapshots["gap_registry_snapshot"],
+        warnings=warnings,
     )
